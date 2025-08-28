@@ -24,56 +24,129 @@ const categories = [
   { name: 'Fashion', icon: Shirt },
 ];
 
-const products = [
+const products =  [
   {
-    id: 1,
-    name: 'Advanced Engineering Mathematics',
-    price: '15000',
-    university: 'University of Lagos',
-    image: 'https://picsum.photos/seed/math-book/400/300',
-    hint: 'textbook math',
+    "id": 1,
+    "name": "Advanced Engineering Mathematics",
+    "price": "15000",
+    "university": "University of Lagos",
+    "image": "https://source.unsplash.com/400x300/?math,book",
+    "hint": "textbook math"
   },
   {
-    id: 2,
-    name: 'Stylish Reading Lamp',
-    price: '8500',
-    university: 'Covenant University',
-    image: 'https://picsum.photos/seed/reading-lamp/400/300',
-    hint: 'lamp decor',
+    "id": 2,
+    "name": "Principles of Economics",
+    "price": "12000",
+    "university": "Obafemi Awolowo University",
+    "image": "https://source.unsplash.com/400x300/?economics,book",
+    "hint": "economics textbook"
   },
   {
-    id: 3,
-    name: 'HP Elitebook Laptop',
-    price: '250000',
-    university: 'University of Ibadan',
-    image: 'https://picsum.photos/seed/laptop-desk/400/300',
-    hint: 'laptop electronics',
+    "id": 3,
+    "name": "Organic Chemistry Notes",
+    "price": "8000",
+    "university": "University of Ibadan",
+    "image": "https://source.unsplash.com/400x300/?chemistry,book",
+    "hint": "chemistry textbook"
   },
   {
-    id: 4,
-    name: 'UNILAG Branded Hoodie',
-    price: '12000',
-    university: 'University of Lagos',
-    image: 'https://picsum.photos/seed/hoodie-style/400/300',
-    hint: 'hoodie clothing',
+    "id": 4,
+    "name": "Laptop Backpack",
+    "price": "9000",
+    "university": "Ahmadu Bello University",
+    "image": "https://source.unsplash.com/400x300/?backpack,student",
+    "hint": "bag for students"
   },
   {
-    id: 5,
-    name: 'Intro to Nigerian History',
-    price: '7500',
-    university: 'Obafemi Awolowo University',
-    image: 'https://picsum.photos/seed/history-book/400/300',
-    hint: 'textbook history',
+    "id": 5,
+    "name": "Sneakers (White)",
+    "price": "11000",
+    "university": "University of Benin",
+    "image": "https://source.unsplash.com/400x300/?sneakers,shoes",
+    "hint": "casual student shoes"
   },
   {
-    id: 6,
-    name: 'Mini Dorm Room Fridge',
-    price: '45000',
-    university: 'Ahmadu Bello University',
-    image: 'https://picsum.photos/seed/mini-fridge/400/300',
-    hint: 'fridge appliance',
+    "id": 6,
+    "name": "Ankara Dress",
+    "price": "15000",
+    "university": "University of Port Harcourt",
+    "image": "https://source.unsplash.com/400x300/?ankara,fashion",
+    "hint": "student fashion"
   },
+  {
+    "id": 7,
+    "name": "Plain White T-Shirt",
+    "price": "3500",
+    "university": "Lagos State University",
+    "image": "https://source.unsplash.com/400x300/?tshirt,white",
+    "hint": "basic student wear"
+  },
+  {
+    "id": 8,
+    "name": "Denim Jacket",
+    "price": "10000",
+    "university": "Covenant University",
+    "image": "https://source.unsplash.com/400x300/?denim,jacket",
+    "hint": "fashion jacket"
+  },
+  {
+    "id": 9,
+    "name": "Jollof Rice & Chicken Pack",
+    "price": "2500",
+    "university": "University of Lagos",
+    "image": "https://source.unsplash.com/400x300/?jollof,rice",
+    "hint": "food delivery"
+  },
+  {
+    "id": 10,
+    "name": "Shawarma (Large)",
+    "price": "2000",
+    "university": "Obafemi Awolowo University",
+    "image": "https://source.unsplash.com/400x300/?shawarma,food",
+    "hint": "fast food"
+  },
+  {
+    "id": 11,
+    "name": "Meat Pie Pack (5 pcs)",
+    "price": "1500",
+    "university": "University of Ibadan",
+    "image": "https://source.unsplash.com/400x300/?meatpie,food",
+    "hint": "snack"
+  },
+  {
+    "id": 12,
+    "name": "Fruit Smoothie",
+    "price": "1200",
+    "university": "Ahmadu Bello University",
+    "image": "https://source.unsplash.com/400x300/?smoothie,fruit",
+    "hint": "healthy drink"
+  },
+  {
+    "id": 13,
+    "name": "Suya (Beef Skewers)",
+    "price": "1800",
+    "university": "University of Benin",
+    "image": "https://source.unsplash.com/400x300/?suya,grill",
+    "hint": "popular student food"
+  },
+  {
+    "id": 14,
+    "name": "Pounded Yam with Egusi Soup",
+    "price": "3000",
+    "university": "University of Port Harcourt",
+    "image": "https://source.unsplash.com/400x300/?egusi,food",
+    "hint": "traditional meal"
+  },
+  {
+    "id": 15,
+    "name": "Burger & Fries",
+    "price": "2200",
+    "university": "Covenant University",
+    "image": "https://source.unsplash.com/400x300/?burger,fries",
+    "hint": "fast food combo"
+  }
 ];
+
 
 export default function Home() {
   return (

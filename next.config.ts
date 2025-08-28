@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  experimental: {
+    serverComponentsExternalPackages: ['google-auth-library'],
+  },
   images: {
     remotePatterns: [
       {
@@ -29,7 +32,7 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
       {
-        protocol: 'https',
+        protocol: 'https'
         hostname: 'avatar.vercel.sh',
         port: '',
         pathname: '/**',

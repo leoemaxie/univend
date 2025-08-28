@@ -7,7 +7,7 @@ import {
 import { JWT, type DefaultJWT } from 'next-auth/jwt';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import NextAuth from 'next-auth';
-import { signInWithEmailAndPassword, db, doc, getDoc } from '@/lib/firebase';
+import { auth as firebaseAuth, signInWithEmailAndPassword, db, doc, getDoc } from '@/lib/firebase';
 import { AuthError } from 'next-auth';
 
 declare module 'next-auth' {
@@ -47,12 +47,14 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          const userCredential = await signInWithEmailAndPassword(credentials.email as string, credentials.password as string);
-
+          // This just verifies the user and gets their data for the session
+          const userCredential = await signInWithEmailAndPassword(firebaseAuth, credentials.email, credentials.password);
+          
           if (userCredential.user) {
             const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
             if (!userDoc.exists()) {
-              throw new Error("User data not found in Firestore.");
+              // This case should ideally not be hit if signup is working correctly
+              return null;
             }
             const userData = userDoc.data();
             return {
@@ -66,20 +68,10 @@ export const authOptions: NextAuthOptions = {
           return null;
 
         } catch (error: any) {
-          // Map Firebase auth errors to NextAuth errors
-          let message = 'Invalid email or password.';
-          if (error.code) {
-            switch (error.code) {
-              case 'auth/user-not-found':
-              case 'auth/wrong-password':
-              case 'auth/invalid-credential':
-                message = 'Invalid email or password.';
-                break;
-              default:
-                message = 'An unexpected error occurred. Please try again.';
-            }
-          }
-          throw new Error(message);
+          // Don't throw an error here, just return null. 
+          // The sign-in page will handle showing the error to the user.
+          console.error("Authorize error:", error.code);
+          return null;
         }
       },
     }),

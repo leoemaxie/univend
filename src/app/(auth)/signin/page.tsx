@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import { signInWithEmailAndPassword, auth } from '@/lib/firebase';
 
 export default function SignInPage() {
   const { toast } = useToast();
@@ -31,32 +32,36 @@ export default function SignInPage() {
     const { email, password } = Object.fromEntries(formData.entries());
 
     try {
+      // Step 1: Authenticate with Firebase first
+      await signInWithEmailAndPassword(auth, email as string, password as string);
+
+      // Step 2: If Firebase auth is successful, sign in with NextAuth to create a session
       const result = await signIn('credentials', {
         email,
         password,
-        redirect: false, // Important to handle redirect manually
+        redirect: false,
       });
 
       if (result?.error) {
-        // Handle authentication error
-        toast({
-          variant: 'destructive',
-          title: 'Authentication Failed',
-          description: result.error === "CredentialsSignin" ? "Invalid email or password." : result.error,
-        });
-      } else if (result?.ok) {
-        // Authentication successful
+        throw new Error(result.error);
+      } 
+      
+      if (result?.ok) {
         toast({
           title: 'Signed In!',
           description: "You've successfully signed in.",
         });
-        router.push(result.url || '/'); // Redirect to dashboard or intended URL
+        // On successful sign-in, NextAuth provides a default callbackUrl.
+        // If not, we fall back to the dashboard.
+        router.push(result.url || '/dashboard'); 
       }
 
     } catch (error: any) {
         let message = "An unknown error occurred.";
-        if (error.message){
-          message = error.message;
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+            message = 'Invalid email or password. Please try again.';
+        } else if (error.message) {
+            message = error.message;
         }
         toast({
             variant: 'destructive',

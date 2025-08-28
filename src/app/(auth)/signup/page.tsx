@@ -33,6 +33,7 @@ import {
   setDoc,
 } from '@/lib/firebase';
 import { Eye, EyeOff } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 
 // Helper function to convert string to sentence case
 const toSentenceCase = (str: string) => {
@@ -49,6 +50,7 @@ export default function SignUpPage() {
   const [role, setRole] = useState('');
   const [school, setSchool] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [hasSchoolEmail, setHasSchoolEmail] = useState(false);
 
   useEffect(() => {
     const fetchSchools = async () => {
@@ -80,6 +82,16 @@ export default function SignUpPage() {
             return;
         }
         
+        if (hasSchoolEmail) {
+            const emailDomain = (email as string).split('@')[1];
+            const selectedSchool = schools.find(s => s.domain === school);
+            if (emailDomain !== selectedSchool?.domain) {
+                toast({ variant: 'destructive', title: 'Invalid Email', description: `Your email domain must match the selected university's domain (${selectedSchool?.domain}).` });
+                setIsPending(false);
+                return;
+            }
+        }
+
         const transformedFirstName = toSentenceCase(firstName as string);
         const transformedLastName = toSentenceCase(lastName as string);
         const fullName = `${transformedFirstName} ${transformedLastName}`;
@@ -142,22 +154,13 @@ export default function SignUpPage() {
                 <Input name="lastName" id="lastName" placeholder="Doe" required />
             </div>
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              name="email"
-              id="email"
-              type="email"
-              placeholder="you@school.edu"
-              required
-            />
-          </div>
+
           <div className="grid gap-2">
             <Label htmlFor="school">University</Label>
             {loading ? (
               <Skeleton className="h-10 w-full" />
             ) : (
-              <Select name="school" required onValueChange={setSchool}>
+              <Select name="school" required onValueChange={setSchool} value={school}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select your university" />
                 </SelectTrigger>
@@ -171,6 +174,26 @@ export default function SignUpPage() {
               </Select>
             )}
           </div>
+          
+          <div className="items-center flex space-x-2">
+              <Checkbox id="has-school-email" checked={hasSchoolEmail} onCheckedChange={(checked) => setHasSchoolEmail(Boolean(checked))} disabled={!school} />
+              <label htmlFor="has-school-email" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                I have a school-issued email address
+              </label>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              name="email"
+              id="email"
+              type="email"
+              placeholder={hasSchoolEmail ? `you@${school}` : "you@example.com"}
+              required
+              disabled={!school}
+            />
+          </div>
+
           <div className="grid gap-2">
             <Label htmlFor="role">I am a...</Label>
             <Select name="role" required onValueChange={setRole}>
@@ -181,7 +204,7 @@ export default function SignUpPage() {
                 <SelectItem value="buyer">Buyer</SelectItem>
                 <SelectItem value="vendor">Vendor</SelectItem>
                 <SelectItem value="rider">Rider</SelectItem>
-                <SelectItem value="superadmin">Super Admin</SelectItem>
+                <SelectItem value="superadminx">Super Admin</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -12,7 +12,7 @@ export function Logo({ className, isTextVisible = true }: LogoProps) {
     <Link href="/" className={cn('flex items-center gap-2', className)}>
       <Image src="/images/logo.png" alt="Univend Logo" width={40} height={40} />
       {isTextVisible && (
-        <span className="text-2xl font-bold font-headline text-slate-800">
+        <span className="text-2xl font-bold font-headline text-foreground">
           Univend
         </span>
       )}

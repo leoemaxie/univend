@@ -34,6 +34,7 @@ import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Logo } from '@/components/logo';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function Header() {
   return (
@@ -108,7 +109,7 @@ export default function Header() {
               <Link href="/vendor/add-product">Sell a Product</Link>
             </Button>
           </div>
-
+          <ThemeToggle />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">

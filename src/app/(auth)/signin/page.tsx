@@ -15,12 +15,14 @@ import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { signInWithEmailAndPassword, auth } from '@/lib/firebase';
 
 export default function SignInPage() {
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
   const [isPending, setIsPending] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -35,11 +37,11 @@ export default function SignInPage() {
       
       toast({
         title: 'Signed In!',
-        description: "You've successfully signed in.",
+        description: "You've successfully signed in. Redirecting...",
       });
 
-      router.push('/dashboard'); 
-      router.refresh(); // Force a refresh to update user state in header
+      // Use window.location.href for a full page reload to ensure auth state is updated everywhere
+      window.location.href = callbackUrl;
 
     } catch (error: any) {
         let message = "An unknown error occurred.";

@@ -13,59 +13,56 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/logo';
-import { useFormStatus } from 'react-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn } from '@/auth/auth';
-import { signInWithEmailAndPassword, auth } from '@/lib/firebase';
+import { signIn } from 'next-auth/react';
 
 export default function SignInPage() {
-  const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
   const { toast } = useToast();
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
 
-  useEffect(() => {
-    if (errorMessage) {
-      toast({
-        variant: 'destructive',
-        title: 'Authentication Failed',
-        description: errorMessage,
-      });
-      setErrorMessage(undefined); // Clear error after showing
-    }
-  }, [errorMessage, toast]);
-
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsPending(true);
-    setErrorMessage(undefined);
 
     const formData = new FormData(event.currentTarget);
     const { email, password } = Object.fromEntries(formData.entries());
 
     try {
-      await signIn('credentials', {
+      const result = await signIn('credentials', {
         email,
         password,
-        redirect: false,
+        redirect: false, // Important to handle redirect manually
       });
-      
-      // We don't get here if signIn throws, but as a fallback
-      // we check auth state. If successful, router.push() will be called.
-      if(auth.currentUser){
-        router.push('/');
+
+      if (result?.error) {
+        // Handle authentication error
+        toast({
+          variant: 'destructive',
+          title: 'Authentication Failed',
+          description: result.error === "CredentialsSignin" ? "Invalid email or password." : result.error,
+        });
+      } else if (result?.ok) {
+        // Authentication successful
+        toast({
+          title: 'Signed In!',
+          description: "You've successfully signed in.",
+        });
+        router.push(result.url || '/'); // Redirect to dashboard or intended URL
       }
 
     } catch (error: any) {
         let message = "An unknown error occurred.";
-        if(error.cause?.err?.message){
-          message = error.cause.err.message;
-        } else if (error.message){
+        if (error.message){
           message = error.message;
         }
-        setErrorMessage(message);
+        toast({
+            variant: 'destructive',
+            title: 'Authentication Failed',
+            description: message,
+          });
     } finally {
       setIsPending(false);
     }

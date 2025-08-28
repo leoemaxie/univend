@@ -1,4 +1,5 @@
-import { db } from '@/lib/firebase-admin';
+'use client';
+
 import type { Product, Order } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,12 +15,16 @@ import {
     TableHeader,
     TableRow,
   } from "@/components/ui/table"
+import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useEffect, useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 async function getVendorData(vendorId: string) {
-  const productsPromise = db.collection('products').where('vendorId', '==', vendorId).orderBy('createdAt', 'desc').get();
-  const ordersPromise = db.collection('orders').where('vendorId', '==', vendorId).orderBy('createdAt', 'desc').get();
+  const productsQuery = query(collection(db, 'products'), where('vendorId', '==', vendorId), orderBy('createdAt', 'desc'));
+  const ordersQuery = query(collection(db, 'orders'), where('vendorId', '==', vendorId), orderBy('createdAt', 'desc'));
 
-  const [productsSnapshot, ordersSnapshot] = await Promise.all([productsPromise, ordersPromise]);
+  const [productsSnapshot, ordersSnapshot] = await Promise.all([getDocs(productsQuery), getDocs(ordersQuery)]);
 
   const products = productsSnapshot.docs.map(doc => doc.data() as Product);
   const orders = ordersSnapshot.docs.map(doc => doc.data() as Order);
@@ -27,8 +32,21 @@ async function getVendorData(vendorId: string) {
   return { products, orders };
 }
 
-export default async function VendorDashboard({ userId }: { userId: string }) {
-  const { products, orders } = await getVendorData(userId);
+export default function VendorDashboard({ userId }: { userId: string }) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+        setLoading(true);
+        const { products, orders } = await getVendorData(userId);
+        setProducts(products);
+        setOrders(orders);
+        setLoading(false);
+    }
+    fetchData();
+  }, [userId]);
 
   return (
     <div className="space-y-8">
@@ -43,7 +61,12 @@ export default async function VendorDashboard({ userId }: { userId: string }) {
           </Button>
         </CardHeader>
         <CardContent>
-            {products.length > 0 ? (
+            {loading ? (
+                <div className='space-y-2'>
+                    <Skeleton className='h-10 w-full' />
+                    <Skeleton className='h-10 w-full' />
+                </div>
+            ) : products.length > 0 ? (
                  <Table>
                     <TableHeader>
                       <TableRow>
@@ -86,7 +109,12 @@ export default async function VendorDashboard({ userId }: { userId: string }) {
           <CardDescription>Keep track of orders for your products.</CardDescription>
         </CardHeader>
         <CardContent>
-        {orders.length > 0 ? (
+        {loading ? (
+             <div className='space-y-2'>
+                <Skeleton className='h-10 w-full' />
+                <Skeleton className='h-10 w-full' />
+            </div>
+        ) : orders.length > 0 ? (
                  <Table>
                     <TableHeader>
                       <TableRow>

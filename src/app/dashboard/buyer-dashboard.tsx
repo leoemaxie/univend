@@ -1,4 +1,6 @@
-import { db } from '@/lib/firebase-admin';
+'use client';
+
+import { db } from '@/lib/firebase';
 import type { Order } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,9 +19,14 @@ import {
     AccordionItem,
     AccordionTrigger,
   } from "@/components/ui/accordion"
+import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 async function getBuyerOrders(buyerId: string): Promise<Order[]> {
-  const ordersSnapshot = await db.collection('orders').where('buyerId', '==', buyerId).orderBy('createdAt', 'desc').get();
+  const ordersCollection = collection(db, 'orders');
+  const q = query(ordersCollection, where('buyerId', '==', buyerId), orderBy('createdAt', 'desc'));
+  const ordersSnapshot = await getDocs(q);
 
   if (ordersSnapshot.empty) {
     return [];
@@ -28,8 +35,20 @@ async function getBuyerOrders(buyerId: string): Promise<Order[]> {
   return ordersSnapshot.docs.map(doc => doc.data() as Order);
 }
 
-export default async function BuyerDashboard({ userId }: { userId: string }) {
-  const orders = await getBuyerOrders(userId);
+export default function BuyerDashboard({ userId }: { userId: string }) {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchOrders() {
+        setLoading(true);
+        const userOrders = await getBuyerOrders(userId);
+        setOrders(userOrders);
+        setLoading(false);
+    }
+    fetchOrders();
+  }, [userId]);
+
 
   return (
     <Card>
@@ -38,7 +57,13 @@ export default async function BuyerDashboard({ userId }: { userId: string }) {
         <CardDescription>View the details and status of all your past orders.</CardDescription>
       </CardHeader>
       <CardContent>
-        {orders.length > 0 ? (
+        {loading ? (
+            <div className='space-y-4'>
+                <Skeleton className='h-12 w-full' />
+                <Skeleton className='h-12 w-full' />
+                <Skeleton className='h-12 w-full' />
+            </div>
+        ) : orders.length > 0 ? (
             <Accordion type="single" collapsible className="w-full">
             {orders.map((order) => (
                 <AccordionItem value={order.id} key={order.id}>

@@ -4,12 +4,14 @@ import {
   generateProductDescription,
   type GenerateProductDescriptionInput,
 } from '@/ai/flows/generate-product-description';
-import { db, storage } from '@/lib/firebase-admin';
+import { db, storage } from '@/lib/firebase';
 import { auth } from '@/auth/auth';
 import { z } from 'zod';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { v4 as uuidv4 } from 'uuid';
 import { revalidatePath } from 'next/cache';
+import { setDoc, doc } from 'firebase/firestore';
+
 
 const ActionInputSchema = z.object({
   productTitle: z.string(),
@@ -85,7 +87,7 @@ export async function addProduct(formData: FormData): Promise<AddProductResponse
 
         const imageUrl = await getDownloadURL(imageRef);
 
-        await db.collection('products').doc(productId).set({
+        await setDoc(doc(db, "products", productId), {
             id: productId,
             vendorId: session.user.id,
             vendorName: session.user.name,

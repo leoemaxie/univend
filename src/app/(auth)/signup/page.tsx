@@ -22,7 +22,6 @@ import { Logo } from '@/components/logo';
 import { getSchools, type School } from '@/lib/schools';
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useFormStatus } from 'react-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { 
@@ -33,7 +32,7 @@ import {
   doc,
   setDoc,
 } from '@/lib/firebase';
-import { signIn } from '@/auth/auth';
+import { signIn } from 'next-auth/react';
 
 
 export default function SignUpPage() {
@@ -84,11 +83,16 @@ export default function SignUpPage() {
             createdAt: new Date().toISOString()
         });
 
-        await signIn('credentials', {
+        // Use next-auth signIn to establish a session
+        const res = await signIn('credentials', {
             email,
             password,
             redirect: false,
         });
+
+        if (res?.error) {
+            throw new Error(res.error);
+        }
         
         toast({ title: 'Success!', description: "Account created successfully!" });
         router.push('/');

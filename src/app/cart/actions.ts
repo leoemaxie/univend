@@ -1,12 +1,13 @@
 'use server';
 
 import { auth } from '@/auth/auth';
-import { db } from '@/lib/firebase-admin';
 import type { CartItem } from '@/hooks/use-cart';
 import type { Order, OrderItem } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
-import { FieldValue } from 'firebase-admin/firestore';
 import { revalidatePath } from 'next/cache';
+import { db } from '@/lib/firebase';
+import { writeBatch, doc, collection, updateDoc, getDoc } from 'firebase/firestore';
+
 
 type ActionResponse = {
   success: boolean;
@@ -59,14 +60,14 @@ export async function placeOrder(cart: CartItem[]): Promise<ActionResponse> {
   };
 
   try {
-    const batch = db.batch();
+    const batch = writeBatch(db);
 
-    const orderRef = db.collection('orders').doc(orderId);
+    const orderRef = doc(db, 'orders', orderId);
     batch.set(orderRef, order);
     
     // Mark products as sold
     cart.forEach(item => {
-        const productRef = db.collection('products').doc(item.product.id);
+        const productRef = doc(db, 'products', item.product.id);
         batch.update(productRef, { status: 'sold' });
     });
 

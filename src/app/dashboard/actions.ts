@@ -1,14 +1,16 @@
 'use server';
 
-import { db } from '@/lib/firebase-admin';
 import { revalidatePath } from 'next/cache';
+import { db } from '@/lib/firebase';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+
 
 export async function acceptDelivery(orderId: string, riderId: string): Promise<{ success: boolean; error?: string }> {
     try {
-        const orderRef = db.collection('orders').doc(orderId);
-        const orderDoc = await orderRef.get();
+        const orderRef = doc(db, 'orders', orderId);
+        const orderDoc = await getDoc(orderRef);
 
-        if (!orderDoc.exists) {
+        if (!orderDoc.exists()) {
             return { success: false, error: 'Order not found.' };
         }
         
@@ -18,7 +20,7 @@ export async function acceptDelivery(orderId: string, riderId: string): Promise<
             return { success: false, error: 'This delivery is no longer available.' };
         }
 
-        await orderRef.update({
+        await updateDoc(orderRef, {
             riderId: riderId,
             status: 'out-for-delivery',
         });

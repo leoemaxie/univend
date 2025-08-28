@@ -1,4 +1,3 @@
-'use server';
 
 import {
   type NextAuthOptions,
@@ -116,9 +115,4 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.AUTH_SECRET,
 };
 
-export const {
-  handlers: { GET, POST },
-  auth,
-  signIn,
-  signOut,
-} = NextAuth(authOptions);
+export const { auth, signIn, signOut } = NextAuth(authOptions);

@@ -32,7 +32,6 @@ import {
   doc,
   setDoc,
 } from '@/lib/firebase';
-import { signIn } from 'next-auth/react';
 
 
 export default function SignUpPage() {
@@ -76,26 +75,17 @@ export default function SignUpPage() {
         });
 
         await setDoc(doc(db, "users", user.uid), {
+            uid: user.uid,
             fullName,
             email,
             school,
             role,
             createdAt: new Date().toISOString()
         });
-
-        // Use next-auth signIn to establish a session
-        const res = await signIn('credentials', {
-            email,
-            password,
-            redirect: false,
-        });
-
-        if (res?.error) {
-            throw new Error(res.error);
-        }
         
-        toast({ title: 'Success!', description: "Account created successfully!" });
-        router.push('/');
+        toast({ title: 'Success!', description: "Account created successfully! Redirecting..." });
+        router.push('/dashboard');
+        router.refresh();
 
     } catch (error: any) {
         let message = "An unknown error occurred.";

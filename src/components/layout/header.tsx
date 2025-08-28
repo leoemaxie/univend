@@ -40,28 +40,31 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { getSchools, type School as SchoolType } from '@/lib/schools';
 import React from 'react';
 import { Skeleton } from '../ui/skeleton';
-import { useSession, signOut } from '@/auth/provider';
+import { useAuth } from '@/auth/provider';
 import { useCart } from '@/hooks/use-cart';
+import { useRouter } from 'next/navigation';
 
 export default function Header() {
   const [schools, setSchools] = React.useState<SchoolType[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const { session } = useSession();
-  const user = session?.user;
+  const [loadingSchools, setLoadingSchools] = React.useState(true);
+  const { user, userDetails, signOut } = useAuth();
   const { cart } = useCart();
+  const router = useRouter();
+
 
   React.useEffect(() => {
     const fetchSchools = async () => {
-      setLoading(true);
+      setLoadingSchools(true);
       const schoolList = await getSchools();
       setSchools(schoolList);
-      setLoading(false);
+      setLoadingSchools(false);
     };
     fetchSchools();
   }, []);
 
   const handleSignOut = () => {
-    signOut({ callbackUrl: '/' });
+    signOut();
+    router.push('/');
   };
 
 
@@ -120,10 +123,10 @@ export default function Header() {
             </form>
           </div>
           <div className="hidden md:flex items-center gap-4">
-            {loading ? (
+            {loadingSchools ? (
               <Skeleton className="h-10 w-[200px]" />
             ) : (
-              <Select defaultValue={user?.school || schools[0]?.domain}>
+              <Select defaultValue={userDetails?.school || schools[0]?.domain}>
                 <SelectTrigger className="w-[200px]">
                   <School className="mr-2 h-4 w-4" />
                   <SelectValue placeholder="Select University" />
@@ -148,7 +151,7 @@ export default function Header() {
                 </Link>
             </Button>
           <ThemeToggle />
-          {user ? (
+          {user && userDetails ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -157,12 +160,12 @@ export default function Header() {
                 >
                   <Avatar className="h-8 w-8">
                     <AvatarImage
-                      src={user.image || `https://avatar.vercel.sh/${user.email}.png`}
-                      alt={user.name || 'User'}
+                      src={user.photoURL || `https://avatar.vercel.sh/${user.email}.png`}
+                      alt={user.displayName || 'User'}
                       data-ai-hint="user avatar"
                     />
                     <AvatarFallback>
-                      {user.name?.charAt(0).toUpperCase()}
+                      {user.displayName?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
@@ -171,7 +174,7 @@ export default function Header() {
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
-                      {user.name}
+                      {user.displayName}
                     </p>
                     <p className="text-xs leading-none text-muted-foreground">
                       {user.email}
@@ -197,17 +200,17 @@ export default function Header() {
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                  <DropdownMenuLabel>Your Role: {user.role}</DropdownMenuLabel>
+                  <DropdownMenuLabel>Your Role: {userDetails.role}</DropdownMenuLabel>
                   <DropdownMenuItem asChild>
                     <Link href="/dashboard">
                       <BookUser className="mr-2 h-4 w-4" />
-                      <span>{user.role === 'vendor' ? 'Vendor Dashboard' : 'Become a Vendor'}</span>
+                      <span>{userDetails.role === 'vendor' ? 'Vendor Dashboard' : 'Become a Vendor'}</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                      <Link href="/dashboard">
                         <DollarSign className="mr-2 h-4 w-4" />
-                        <span>{user.role === 'rider' ? 'Rider Dashboard' : 'Become a Rider'}</span>
+                        <span>{userDetails.role === 'rider' ? 'Rider Dashboard' : 'Become a Rider'}</span>
                      </Link>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>

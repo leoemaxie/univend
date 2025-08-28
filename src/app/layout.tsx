@@ -6,19 +6,17 @@ import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/auth/provider';
-import { auth } from '@/auth/auth';
 
 export const metadata: Metadata = {
   title: 'Univend - Your Campus Marketplace',
   description: 'Buy and sell products within your university campus.',
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth();
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -110,7 +108,7 @@ export default async function RootLayout({
       <body
         className={cn('min-h-screen bg-background font-body antialiased')}
       >
-        <AuthProvider session={session}>
+        <AuthProvider>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"

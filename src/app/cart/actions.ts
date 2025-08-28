@@ -1,6 +1,6 @@
 'use server';
 
-import { auth } from '@/auth/auth';
+import { auth } from '@/lib/firebase-admin';
 import type { CartItem } from '@/hooks/use-cart';
 import type { Order, OrderItem } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
@@ -15,9 +15,8 @@ type ActionResponse = {
   orderId?: string;
 };
 
-export async function placeOrder(cart: CartItem[]): Promise<ActionResponse> {
-  const session = await auth();
-  if (!session?.user) {
+export async function placeOrder(cart: CartItem[], user: { uid: string, displayName?: string | null, university?: string }): Promise<ActionResponse> {
+  if (!user) {
     return { success: false, error: 'Authentication required.' };
   }
 
@@ -25,11 +24,8 @@ export async function placeOrder(cart: CartItem[]): Promise<ActionResponse> {
     return { success: false, error: 'Your cart is empty.' };
   }
 
-  const { user } = session;
   const orderId = uuidv4();
   
-  // For simplicity, we assume all items in a single cart order are from the same vendor.
-  // A real-world app would group items by vendor and create separate orders.
   const vendorId = cart[0].product.vendorId;
   if(!vendorId){
     return { success: false, error: 'Product vendor information is missing.' };
@@ -49,14 +45,14 @@ export async function placeOrder(cart: CartItem[]): Promise<ActionResponse> {
 
   const order: Order = {
     id: orderId,
-    buyerId: user.id,
-    buyerName: user.name ?? 'Anonymous',
+    buyerId: user.uid,
+    buyerName: user.displayName ?? 'Anonymous',
     vendorId,
     items: orderItems,
     total,
     status: 'pending',
     createdAt: new Date().toISOString(),
-    university: user.school,
+    university: user.university || '',
   };
 
   try {
@@ -65,7 +61,6 @@ export async function placeOrder(cart: CartItem[]): Promise<ActionResponse> {
     const orderRef = doc(db, 'orders', orderId);
     batch.set(orderRef, order);
     
-    // Mark products as sold
     cart.forEach(item => {
         const productRef = doc(db, 'products', item.product.id);
         batch.update(productRef, { status: 'sold' });

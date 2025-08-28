@@ -5,12 +5,11 @@ import {
   type GenerateProductDescriptionInput,
 } from '@/ai/flows/generate-product-description';
 import { db, storage } from '@/lib/firebase';
-import { auth } from '@/auth/auth';
 import { z } from 'zod';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { v4 as uuidv4 } from 'uuid';
 import { revalidatePath } from 'next/cache';
-import { setDoc, doc } from 'firebase/firestore';
+import { setDoc, doc, getDoc } from 'firebase/firestore';
 
 
 const ActionInputSchema = z.object({
@@ -48,11 +47,14 @@ export async function handleGenerateDescription(
 }
 
 const AddProductSchema = z.object({
-  productTitle: z.string().min(5),
-  productCategory: z.string(),
-  productDescription: z.string().min(20),
-  price: z.coerce.number().positive(),
-  image: z.instanceof(File),
+    productTitle: z.string().min(5),
+    productCategory: z.string(),
+    productDescription: z.string().min(20),
+    price: z.coerce.number().positive(),
+    image: z.instanceof(File),
+    userId: z.string(),
+    userName: z.string(),
+    userSchool: z.string(),
 });
 
 type AddProductResponse = {
@@ -62,19 +64,16 @@ type AddProductResponse = {
 };
 
 export async function addProduct(formData: FormData): Promise<AddProductResponse> {
-    const session = await auth();
-    if (!session?.user) {
-        return { success: false, error: 'You must be logged in to add a product.' };
-    }
-
     const rawData = Object.fromEntries(formData.entries());
     const validationResult = AddProductSchema.safeParse(rawData);
 
     if (!validationResult.success) {
-        return { success: false, error: validationResult.error.flatten().fieldErrors.toString() };
+        // A bit more descriptive error logging
+        console.error("Add Product Validation Error:", validationResult.error.flatten());
+        return { success: false, error: "Invalid product data provided." };
     }
     
-    const { productTitle, productCategory, productDescription, price, image } = validationResult.data;
+    const { productTitle, productCategory, productDescription, price, image, userId, userName, userSchool } = validationResult.data;
     
     try {
         const productId = uuidv4();
@@ -89,9 +88,9 @@ export async function addProduct(formData: FormData): Promise<AddProductResponse
 
         await setDoc(doc(db, "products", productId), {
             id: productId,
-            vendorId: session.user.id,
-            vendorName: session.user.name,
-            university: session.user.school,
+            vendorId: userId,
+            vendorName: userName,
+            university: userSchool,
             title: productTitle,
             category: productCategory,
             description: productDescription,

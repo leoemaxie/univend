@@ -29,6 +29,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Sparkles, Loader2, Upload } from 'lucide-react';
 import { handleGenerateDescription, addProduct } from './actions';
 import Image from 'next/image';
+import { useAuth } from '@/auth/provider';
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
   productTitle: z.string().min(5, {
@@ -49,6 +51,9 @@ export default function AddProductPage() {
   const [isGenerating, startGenerating] = useTransition();
   const [isSubmitting, startSubmitting] = useTransition();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const { user, userDetails, loading } = useAuth();
+  const router = useRouter();
+
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -59,11 +64,21 @@ export default function AddProductPage() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!user || !userDetails) {
+        toast({ variant: 'destructive', title: 'Authentication Error', description: 'You must be logged in to add a product.'});
+        return;
+    }
+
     startSubmitting(async () => {
         const formData = new FormData();
         Object.entries(values).forEach(([key, value]) => {
             formData.append(key, value);
         });
+
+        // Append user details to formData
+        formData.append('userId', user.uid);
+        formData.append('userName', user.displayName || 'Anonymous');
+        formData.append('userSchool', userDetails.school);
 
         const result = await addProduct(formData);
 
@@ -74,6 +89,7 @@ export default function AddProductPage() {
             });
             form.reset();
             setImagePreview(null);
+            router.push('/dashboard');
         } else {
             toast({
                 variant: 'destructive',
@@ -130,6 +146,15 @@ export default function AddProductPage() {
     }
   }
 
+
+  if (loading) {
+    return <div className="container text-center py-12"><Loader2 className="h-8 w-8 animate-spin mx-auto" /></div>
+  }
+  
+  if (!user) {
+    router.push('/signin?callbackUrl=/vendor/add-product');
+    return null;
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">

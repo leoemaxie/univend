@@ -14,9 +14,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
 import { signInWithEmailAndPassword, auth } from '@/lib/firebase';
 
 export default function SignInPage() {
@@ -32,29 +31,15 @@ export default function SignInPage() {
     const { email, password } = Object.fromEntries(formData.entries());
 
     try {
-      // Step 1: Authenticate with Firebase first
       await signInWithEmailAndPassword(auth, email as string, password as string);
-
-      // Step 2: If Firebase auth is successful, sign in with NextAuth to create a session
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
+      
+      toast({
+        title: 'Signed In!',
+        description: "You've successfully signed in.",
       });
 
-      if (result?.error) {
-        throw new Error(result.error);
-      } 
-      
-      if (result?.ok) {
-        toast({
-          title: 'Signed In!',
-          description: "You've successfully signed in.",
-        });
-        // On successful sign-in, NextAuth provides a default callbackUrl.
-        // If not, we fall back to the dashboard.
-        router.push(result.url || '/dashboard'); 
-      }
+      router.push('/dashboard'); 
+      router.refresh(); // Force a refresh to update user state in header
 
     } catch (error: any) {
         let message = "An unknown error occurred.";

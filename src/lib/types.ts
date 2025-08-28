@@ -47,4 +47,13 @@ export type School = {
       pickedUpAt?: string;
       deliveredAt?: string;
   }
+
+  export type UserDetails = {
+    uid: string;
+    fullName: string;
+    email: string;
+    school: string;
+    role: 'buyer' | 'vendor' | 'rider';
+    createdAt: string;
+}
   

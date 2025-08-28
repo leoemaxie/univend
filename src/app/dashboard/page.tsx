@@ -1,4 +1,5 @@
-import { auth } from '@/auth/auth';
+'use client';
+
 import { redirect } from 'next/navigation';
 import {
   Card,
@@ -11,25 +12,33 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import VendorDashboard from './vendor-dashboard';
 import BuyerDashboard from './buyer-dashboard';
 import RiderDashboard from './rider-dashboard';
-import { Package, ShoppingBag, Bike } from 'lucide-react';
+import { Package, ShoppingBag, Bike, Loader2 } from 'lucide-react';
+import { useAuth } from '@/auth/provider';
 
-export default async function DashboardPage() {
-  const session = await auth();
+export default function DashboardPage() {
+  const { user, userDetails, loading } = useAuth();
 
-  if (!session?.user) {
-    redirect('/signin?callbackUrl=/dashboard');
+  if (loading) {
+    return (
+        <div className="container mx-auto px-4 py-12 text-center">
+            <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
+            <p className="mt-4 text-muted-foreground">Loading your dashboard...</p>
+        </div>
+    )
   }
 
-  const { user } = session;
+  if (!user || !userDetails) {
+    redirect('/signin?callbackUrl=/dashboard');
+  }
 
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold font-headline">Welcome, {user.name}!</h1>
+        <h1 className="text-4xl font-bold font-headline">Welcome, {user.displayName}!</h1>
         <p className="text-muted-foreground text-lg">Here's your personal dashboard.</p>
       </div>
 
-      <Tabs defaultValue={user.role} className="w-full">
+      <Tabs defaultValue={userDetails.role} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="buyer">
             <ShoppingBag className="mr-2" /> My Purchases
@@ -42,13 +51,13 @@ export default async function DashboardPage() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="buyer">
-            <BuyerDashboard userId={user.id} />
+            <BuyerDashboard userId={user.uid} />
         </TabsContent>
         <TabsContent value="vendor">
-            <VendorDashboard userId={user.id} />
+            <VendorDashboard userId={user.uid} />
         </TabsContent>
         <TabsContent value="rider">
-            <RiderDashboard userId={user.id} university={user.school} />
+            <RiderDashboard userId={user.uid} university={userDetails.school} />
         </TabsContent>
       </Tabs>
     </div>

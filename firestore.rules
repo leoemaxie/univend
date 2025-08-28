@@ -1,42 +1,34 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can read/write their own user document, but not others
+
     match /users/{userId} {
-      allow read, update, delete: if request.auth.uid == userId;
-      allow create: if request.auth.uid != null;
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Schools list is public, but read-only for clients
-    match /schools/{schoolId} {
-      allow read: if true;
-      allow write: if false;
-    }
-    
-    // Products can be read by anyone, but only created/updated by the vendor (authenticated user)
-    // and only deleted by the vendor.
     match /products/{productId} {
       allow read: if true;
-      allow create: if request.auth.uid != null && request.resource.data.vendorId == request.auth.uid;
-      allow update: if request.auth.uid != null && request.resource.data.vendorId == request.auth.uid;
-      allow delete: if request.auth.uid != null && resource.data.vendorId == request.auth.uid;
+      // Allow write if the user is the vendor
+      allow create, update: if request.auth != null && request.resource.data.vendorId == request.auth.uid;
+      // Allow delete only if the user is the vendor
+      allow delete: if request.auth != null && resource.data.vendorId == request.auth.uid;
     }
 
-    // Orders can only be created by an authenticated user (the buyer).
-    // The buyer can read their own orders.
-    // The vendor can read orders for their products.
-    // The rider assigned can read the order.
     match /orders/{orderId} {
-      allow create: if request.auth.uid != null && request.resource.data.buyerId == request.auth.uid;
-      allow read: if request.auth.uid != null && 
-                  (resource.data.buyerId == request.auth.uid || 
-                   resource.data.vendorId == request.auth.uid ||
-                   resource.data.riderId == request.auth.uid);
-      allow update: if request.auth.uid != null &&
-                    (resource.data.buyerId == request.auth.uid || // Buyer can cancel?
-                     resource.data.vendorId == request.auth.uid || // Vendor can update status?
-                     (resource.data.riderId == null && request.resource.data.riderId == request.auth.uid) || // Rider can accept
-                     resource.data.riderId == request.auth.uid); // Rider can update status
+        allow read: if request.auth != null && (request.auth.uid == resource.data.buyerId || request.auth.uid == resource.data.vendorId || request.auth.uid == resource.data.riderId);
+        allow create: if request.auth != null && request.auth.uid == request.resource.data.buyerId;
+        allow update: if request.auth != null && (request.auth.uid == resource.data.riderId || request.auth.uid == resource.data.vendorId);
+    }
+    
+    match /schools/{schoolId} {
+      allow read: if true;
+      allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superadmin';
+    }
+
+    // Default deny all reads and writes
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

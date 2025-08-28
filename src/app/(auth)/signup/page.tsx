@@ -181,6 +181,7 @@ export default function SignUpPage() {
                 <SelectItem value="buyer">Buyer</SelectItem>
                 <SelectItem value="vendor">Vendor</SelectItem>
                 <SelectItem value="rider">Rider</SelectItem>
+                <SelectItem value="superadmin">Super Admin</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -28,7 +28,7 @@ const products = [
   {
     id: 1,
     name: 'Advanced Engineering Mathematics',
-    price: '35.00',
+    price: '2000',
     university: 'Stanford University',
     image: 'https://picsum.photos/400/300?random=1',
     hint: 'textbook math',
@@ -36,7 +36,7 @@ const products = [
   {
     id: 2,
     name: 'Comfy Bedside Lamp',
-    price: '15.50',
+    price: '9000',
     university: 'Harvard University',
     image: 'https://picsum.photos/400/300?random=2',
     hint: 'lamp decor',
@@ -44,7 +44,7 @@ const products = [
   {
     id: 3,
     name: 'Noise-Cancelling Headphones',
-    price: '99.99',
+    price: '15500',
     university: 'MIT',
     image: 'https://picsum.photos/400/300?random=3',
     hint: 'headphones electronics',
@@ -52,7 +52,7 @@ const products = [
   {
     id: 4,
     name: 'University Hoodie',
-    price: '45.00',
+    price: '30000',
     university: 'Stanford University',
     image: 'https://picsum.photos/400/300?random=4',
     hint: 'hoodie clothing',
@@ -60,7 +60,7 @@ const products = [
   {
     id: 5,
     name: 'Introduction to Psychology',
-    price: '25.00',
+    price: '10000',
     university: 'Yale University',
     image: 'https://picsum.photos/400/300?random=5',
     hint: 'textbook psychology',
@@ -68,7 +68,7 @@ const products = [
   {
     id: 6,
     name: 'Mini Fridge for Dorm Room',
-    price: '75.00',
+    price: '15000',
     university: 'Harvard University',
     image: 'https://picsum.photos/400/300?random=6',
     hint: 'fridge appliance',
@@ -109,11 +109,11 @@ export default function Home() {
           {categories.map((category) => (
             <Card
               key={category.name}
-              className="group hover:shadow-lg transition-all duration-300 cursor-pointer text-center bg-card/50 hover:bg-card"
+              className="group hover:shadow-lg transition-all duration-300 cursor-pointer text-center bg-card/50 hover:bg-accent/10"
             >
               <CardContent className="flex flex-col items-center justify-center p-6">
-                <div className="bg-primary/10 p-4 rounded-full mb-4 group-hover:bg-primary/20 transition-colors">
-                    <category.icon className="w-10 h-10 text-primary transition-transform duration-300 group-hover:scale-110" />
+                <div className="bg-primary/10 p-4 rounded-full mb-4 group-hover:bg-accent/20 transition-colors">
+                    <category.icon className="w-10 h-10 text-primary transition-transform duration-300 group-hover:scale-110 group-hover:text-accent-foreground" />
                 </div>
                 <h3 className="font-semibold text-lg">{category.name}</h3>
               </CardContent>
@@ -157,9 +157,9 @@ export default function Home() {
                 <div className="flex-grow"></div>
                 <div className="flex justify-between items-center mt-auto">
                   <p className="text-2xl font-bold text-primary">
-                    ${product.price}
+                  ₦{product.price}
                   </p>
-                  <Button size="sm" variant="secondary">
+                  <Button size="sm" variant="outline">
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Add to Cart
                   </Button>

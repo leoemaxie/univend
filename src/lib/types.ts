@@ -50,6 +50,8 @@ export type School = {
 
   export type UserDetails = {
     uid: string;
+    firstName: string;
+    lastName: string;
     fullName: string;
     email: string;
     school: string;

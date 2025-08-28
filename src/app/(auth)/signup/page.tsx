@@ -32,7 +32,13 @@ import {
   doc,
   setDoc,
 } from '@/lib/firebase';
+import { Eye, EyeOff } from 'lucide-react';
 
+// Helper function to convert string to sentence case
+const toSentenceCase = (str: string) => {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
 
 export default function SignUpPage() {
   const [schools, setSchools] = useState<School[]>([]);
@@ -42,6 +48,7 @@ export default function SignUpPage() {
   const [isPending, setIsPending] = useState(false);
   const [role, setRole] = useState('');
   const [school, setSchool] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const fetchSchools = async () => {
@@ -58,24 +65,36 @@ export default function SignUpPage() {
     setIsPending(true);
 
     const formData = new FormData(event.currentTarget);
-    const { fullName, email, password } = Object.fromEntries(formData.entries());
+    const { firstName, lastName, email, password } = Object.fromEntries(formData.entries());
 
     try {
-        if(!fullName || !email || !school || !role || !password){
+        if(!firstName || !lastName || !email || !school || !role || !password){
             toast({ variant: 'destructive', title: 'Error', description: "All fields are required" });
             setIsPending(false);
             return;
         }
 
+        if (String(password).length < 6) {
+            toast({ variant: 'destructive', title: 'Error', description: "Password must be at least 6 characters long." });
+            setIsPending(false);
+            return;
+        }
+        
+        const transformedFirstName = toSentenceCase(firstName as string);
+        const transformedLastName = toSentenceCase(lastName as string);
+        const fullName = `${transformedFirstName} ${transformedLastName}`;
+
         const userCredential = await createUserWithEmailAndPassword(auth, email as string, password as string);
         const user = userCredential.user;
 
         await updateProfile(user, {
-            displayName: fullName as string,
+            displayName: fullName,
         });
 
         await setDoc(doc(db, "users", user.uid), {
             uid: user.uid,
+            firstName: transformedFirstName,
+            lastName: transformedLastName,
             fullName,
             email,
             school,
@@ -101,7 +120,7 @@ export default function SignUpPage() {
   }
 
   return (
-    <Card className="w-full max-w-sm">
+    <Card className="w-full max-w-lg">
       <CardHeader className="text-center">
         <div className="flex justify-center mb-4">
           <Logo />
@@ -113,9 +132,15 @@ export default function SignUpPage() {
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="fullName">Full Name</Label>
-            <Input name="fullName" id="fullName" placeholder="John Doe" required />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+                <Label htmlFor="firstName">First Name</Label>
+                <Input name="firstName" id="firstName" placeholder="John" required />
+            </div>
+            <div className="grid gap-2">
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input name="lastName" id="lastName" placeholder="Doe" required />
+            </div>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
@@ -123,7 +148,7 @@ export default function SignUpPage() {
               name="email"
               id="email"
               type="email"
-              placeholder="m@example.com"
+              placeholder="you@school.edu"
               required
             />
           </div>
@@ -159,9 +184,21 @@ export default function SignUpPage() {
               </SelectContent>
             </Select>
           </div>
-          <div className="grid gap-2">
+          <div className="grid gap-2 relative">
             <Label htmlFor="password">Password</Label>
-            <Input name="password" id="password" type="password" required />
+            <Input name="password" id="password" type={showPassword ? "text" : "password"} placeholder='••••••••' required />
+            <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 bottom-1 h-7 w-7 text-muted-foreground"
+                onClick={() => setShowPassword(!showPassword)}
+            >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                <span className='sr-only'>
+                    {showPassword ? "Hide password" : "Show password"}
+                </span>
+            </Button>
           </div>
           <SignUpButton pending={isPending} />
         </CardContent>

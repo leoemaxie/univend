@@ -22,31 +22,28 @@ import { Logo } from '@/components/logo';
 import { getSchools, type School } from '@/lib/schools';
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useFormState, useFormStatus } from 'react-dom';
-import { signup } from './actions';
+import { useFormStatus } from 'react-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { 
+  createUserWithEmailAndPassword, 
+  updateProfile,
+  auth, 
+  db,
+  doc,
+  setDoc,
+} from '@/lib/firebase';
+import { signIn } from '@/auth/auth';
+
 
 export default function SignUpPage() {
   const [schools, setSchools] = useState<School[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const router = useRouter();
-
-  const [state, dispatch] = useFormState(signup, { message: null });
-
-  useEffect(() => {
-    if (state.message) {
-      toast({
-        variant: state.success ? 'default' : 'destructive',
-        title: state.success ? 'Success!' : 'Error',
-        description: state.message,
-      });
-      if(state.success) {
-        router.push('/');
-      }
-    }
-  }, [state, toast, router]);
+  const [isPending, setIsPending] = useState(false);
+  const [role, setRole] = useState('');
+  const [school, setSchool] = useState('');
 
   useEffect(() => {
     const fetchSchools = async () => {
@@ -57,6 +54,57 @@ export default function SignUpPage() {
     };
     fetchSchools();
   }, []);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsPending(true);
+
+    const formData = new FormData(event.currentTarget);
+    const { fullName, email, password } = Object.fromEntries(formData.entries());
+
+    try {
+        if(!fullName || !email || !school || !role || !password){
+            toast({ variant: 'destructive', title: 'Error', description: "All fields are required" });
+            setIsPending(false);
+            return;
+        }
+
+        const userCredential = await createUserWithEmailAndPassword(auth, email as string, password as string);
+        const user = userCredential.user;
+
+        await updateProfile(user, {
+            displayName: fullName as string,
+        });
+
+        await setDoc(doc(db, "users", user.uid), {
+            fullName,
+            email,
+            school,
+            role,
+            createdAt: new Date().toISOString()
+        });
+
+        await signIn('credentials', {
+            email,
+            password,
+            redirect: false,
+        });
+        
+        toast({ title: 'Success!', description: "Account created successfully!" });
+        router.push('/');
+
+    } catch (error: any) {
+        let message = "An unknown error occurred.";
+        if (error.code === 'auth/email-already-in-use') {
+            message = "This email is already registered. Please sign in.";
+        } else if (error.message) {
+            message = error.message;
+        }
+        toast({ variant: 'destructive', title: 'Error', description: message });
+    } finally {
+        setIsPending(false);
+    }
+  }
 
   return (
     <Card className="w-full max-w-sm">
@@ -69,7 +117,7 @@ export default function SignUpPage() {
         </CardTitle>
         <CardDescription>Join the campus marketplace today.</CardDescription>
       </CardHeader>
-      <form action={dispatch}>
+      <form onSubmit={handleSubmit}>
         <CardContent className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="fullName">Full Name</Label>
@@ -90,7 +138,7 @@ export default function SignUpPage() {
             {loading ? (
               <Skeleton className="h-10 w-full" />
             ) : (
-              <Select name="school" required>
+              <Select name="school" required onValueChange={setSchool}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select your university" />
                 </SelectTrigger>
@@ -106,7 +154,7 @@ export default function SignUpPage() {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="role">I am a...</Label>
-            <Select name="role" required>
+            <Select name="role" required onValueChange={setRole}>
               <SelectTrigger>
                 <SelectValue placeholder="Select your role" />
               </SelectTrigger>
@@ -121,7 +169,7 @@ export default function SignUpPage() {
             <Label htmlFor="password">Password</Label>
             <Input name="password" id="password" type="password" required />
           </div>
-          <SignUpButton />
+          <SignUpButton pending={isPending} />
         </CardContent>
         <CardFooter className="flex-col text-center text-sm text-muted-foreground">
           <p>
@@ -136,8 +184,7 @@ export default function SignUpPage() {
   );
 }
 
-function SignUpButton() {
-  const { pending } = useFormStatus();
+function SignUpButton({ pending }: { pending: boolean }) {
   return (
     <Button type="submit" className="w-full" disabled={pending}>
       {pending ? 'Creating Account...' : 'Create Account'}

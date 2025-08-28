@@ -8,7 +8,7 @@ import {
 import { JWT, type DefaultJWT } from 'next-auth/jwt';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import NextAuth from 'next-auth';
-import { adminAuth, adminDb } from '@/lib/firebase';
+import { signInWithEmailAndPassword, db, doc, getDoc } from '@/lib/firebase';
 import { AuthError } from 'next-auth';
 
 declare module 'next-auth' {
@@ -48,49 +48,39 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          // This is a temporary way to sign in with NextAuth
-          // In a real app, you would verify credentials against your DB
-          // Here we're just using a dummy verification
-          await new Promise((resolve) => {
-              setTimeout(() => resolve({
-                  email: credentials.email,
-                  password: credentials.password
-              }), 1000)
-          })
-          
-          const userRecord = await adminAuth.getUserByEmail(credentials.email as string);
-          const userDoc = await adminDb.collection('users').doc(userRecord.uid).get();
-          
-          if(!userDoc.exists){
+          const userCredential = await signInWithEmailAndPassword(credentials.email as string, credentials.password as string);
+
+          if (userCredential.user) {
+            const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+            if (!userDoc.exists()) {
               throw new Error("User data not found in Firestore.");
-          }
-      
-          const userData = userDoc.data();
-
-          return { 
-            id: userDoc.id,
-            name: userData?.fullName,
-            email: userData?.email,
-            school: userData?.school,
-            role: userData?.role
-          } as User;
-
-        } catch (error) {
-          if (error instanceof AuthError) {
-            switch (error.type) {
-              case 'CredentialsSignin':
-                throw new Error('Invalid credentials.');
-              default:
-                throw new Error('Something went wrong.');
             }
+            const userData = userDoc.data();
+            return {
+              id: userDoc.id,
+              name: userData?.fullName,
+              email: userData?.email,
+              school: userData?.school,
+              role: userData?.role,
+            } as User;
           }
-          if (error instanceof Error) {
-            if((error as any).code === 'auth/user-not-found' || (error as any).code === 'auth/wrong-password' || error.message.includes('INVALID_LOGIN_CREDENTIALS')) {
-              throw new Error('Invalid email or password.');
-            }
-          }
-          console.error(error);
           return null;
+
+        } catch (error: any) {
+          // Map Firebase auth errors to NextAuth errors
+          let message = 'Invalid email or password.';
+          if (error.code) {
+            switch (error.code) {
+              case 'auth/user-not-found':
+              case 'auth/wrong-password':
+              case 'auth/invalid-credential':
+                message = 'Invalid email or password.';
+                break;
+              default:
+                message = 'An unexpected error occurred. Please try again.';
+            }
+          }
+          throw new Error(message);
         }
       },
     }),

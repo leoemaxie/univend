@@ -1,10 +1,9 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-import { getAuth as getAdminAuth, App as AdminApp, cert, initializeApp as initializeAdminApp, getApps as getAdminApps } from 'firebase-admin/auth';
-import { getFirestore as getAdminFirestore } from 'firebase-admin/firestore';
+
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -24,21 +23,11 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
-
-// Initialize Firebase Admin SDK for the server
-function getAdminApp(): AdminApp {
-    if (getAdminApps().length > 0) {
-      return getAdminApps()[0];
-    }
-  
-    const serviceAccount = JSON.parse(
-        process.env.FIREBASE_SERVICE_ACCOUNT_KEY as string
-    );
-  
-    return initializeAdminApp({
-      credential: cert(serviceAccount),
-    });
+export {
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    updateProfile,
+    doc,
+    setDoc,
+    getDoc,
 }
-  
-export const adminAuth = getAdminAuth(getAdminApp());
-export const adminDb = getAdminFirestore(getAdminApp());

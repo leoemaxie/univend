@@ -13,16 +13,18 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/logo';
-import { useFormState, useFormStatus } from 'react-dom';
-import { authenticate } from './actions';
+import { useFormStatus } from 'react-dom';
 import { useToast } from '@/hooks/use-toast';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { signIn } from '@/auth/auth';
+import { signInWithEmailAndPassword, auth } from '@/lib/firebase';
 
 export default function SignInPage() {
-  const [errorMessage, dispatch] = useFormState(authenticate, undefined);
+  const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
   const { toast } = useToast();
   const router = useRouter();
+  const [isPending, setIsPending] = useState(false);
 
   useEffect(() => {
     if (errorMessage) {
@@ -31,12 +33,44 @@ export default function SignInPage() {
         title: 'Authentication Failed',
         description: errorMessage,
       });
-    } else if(errorMessage === undefined) {
-      // On successful login, the action doesn't return an error.
-      // We can redirect here. A better way might be to handle this in middleware.
-      router.push('/');
+      setErrorMessage(undefined); // Clear error after showing
     }
-  }, [errorMessage, toast, router]);
+  }, [errorMessage, toast]);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsPending(true);
+    setErrorMessage(undefined);
+
+    const formData = new FormData(event.currentTarget);
+    const { email, password } = Object.fromEntries(formData.entries());
+
+    try {
+      await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
+      
+      // We don't get here if signIn throws, but as a fallback
+      // we check auth state. If successful, router.push() will be called.
+      if(auth.currentUser){
+        router.push('/');
+      }
+
+    } catch (error: any) {
+        let message = "An unknown error occurred.";
+        if(error.cause?.err?.message){
+          message = error.cause.err.message;
+        } else if (error.message){
+          message = error.message;
+        }
+        setErrorMessage(message);
+    } finally {
+      setIsPending(false);
+    }
+  };
+
 
   return (
     <Card className="w-full max-w-sm">
@@ -50,7 +84,7 @@ export default function SignInPage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form action={dispatch} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -65,7 +99,7 @@ export default function SignInPage() {
             <Label htmlFor="password">Password</Label>
             <Input id="password" name="password" type="password" required />
           </div>
-          <LoginButton />
+          <LoginButton pending={isPending} />
         </form>
       </CardContent>
       <CardFooter className="flex-col gap-2">
@@ -85,11 +119,10 @@ export default function SignInPage() {
   );
 }
 
-function LoginButton() {
-  const { pending } = useFormStatus();
+function LoginButton({ pending }: { pending: boolean }) {
   return (
-    <Button type="submit" className="w-full" aria-disabled={pending}>
-      Sign In
+    <Button type="submit" className="w-full" aria-disabled={pending} disabled={pending}>
+      {pending ? 'Signing In...' : 'Sign In'}
     </Button>
   );
 }

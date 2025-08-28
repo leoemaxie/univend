@@ -1,3 +1,4 @@
+'use client';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,8 +19,24 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Logo } from '@/components/logo';
+import { getSchools, type School } from '@/lib/schools';
+import { useEffect, useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function SignUpPage() {
+  const [schools, setSchools] = useState<School[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSchools = async () => {
+      setLoading(true);
+      const schoolList = await getSchools();
+      setSchools(schoolList);
+      setLoading(false);
+    };
+    fetchSchools();
+  }, []);
+
   return (
     <Card className="w-full max-w-sm">
       <CardHeader className="text-center">
@@ -42,17 +59,20 @@ export default function SignUpPage() {
         </div>
         <div className="grid gap-2">
           <Label htmlFor="school">University</Label>
-          <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="Select your university" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="stanford">Stanford University</SelectItem>
-              <SelectItem value="harvard">Harvard University</SelectItem>
-              <SelectItem value="mit">MIT</SelectItem>
-              <SelectItem value="yale">Yale University</SelectItem>
-            </SelectContent>
-          </Select>
+          {loading ? (
+             <Skeleton className="h-10 w-full" />
+          ) : (
+            <Select>
+              <SelectTrigger>
+                <SelectValue placeholder="Select your university" />
+              </SelectTrigger>
+              <SelectContent>
+                {schools.map((school) => (
+                   <SelectItem key={school.domain} value={school.domain}>{school.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
         <div className="grid gap-2">
           <Label htmlFor="role">I am a...</Label>

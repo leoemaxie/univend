@@ -35,8 +35,24 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Logo } from '@/components/logo';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { getSchools, type School as SchoolType } from '@/lib/schools';
+import React from 'react';
+import { Skeleton } from '../ui/skeleton';
 
 export default function Header() {
+  const [schools, setSchools] = React.useState<SchoolType[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchSchools = async () => {
+      setLoading(true);
+      const schoolList = await getSchools();
+      setSchools(schoolList);
+      setLoading(false);
+    };
+    fetchSchools();
+  }, []);
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
@@ -92,18 +108,21 @@ export default function Header() {
             </form>
           </div>
           <div className="hidden md:flex items-center gap-4">
-            <Select defaultValue="stanford">
+             {loading ? (
+                <Skeleton className="h-10 w-[200px]" />
+            ) : (
+            <Select defaultValue={schools[0]?.domain}>
               <SelectTrigger className="w-[200px]">
                 <School className="mr-2 h-4 w-4" />
                 <SelectValue placeholder="Select University" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="stanford">Stanford University</SelectItem>
-                <SelectItem value="harvard">Harvard University</SelectItem>
-                <SelectItem value="mit">MIT</SelectItem>
-                <SelectItem value="yale">Yale University</SelectItem>
+                {schools.map((school) => (
+                    <SelectItem key={school.domain} value={school.domain}>{school.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
+            )}
 
             <Button asChild variant="outline">
               <Link href="/vendor/add-product">Sell a Product</Link>

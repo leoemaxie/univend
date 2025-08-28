@@ -30,7 +30,7 @@ const products = [
     name: 'Advanced Engineering Mathematics',
     price: '15000',
     university: 'University of Lagos',
-    image: 'https://picsum.photos/400/300?random=1',
+    image: 'https://picsum.photos/seed/math-book/400/300',
     hint: 'textbook math',
   },
   {
@@ -38,7 +38,7 @@ const products = [
     name: 'Stylish Reading Lamp',
     price: '8500',
     university: 'Covenant University',
-    image: 'https://picsum.photos/400/300?random=2',
+    image: 'https://picsum.photos/seed/reading-lamp/400/300',
     hint: 'lamp decor',
   },
   {
@@ -46,7 +46,7 @@ const products = [
     name: 'HP Elitebook Laptop',
     price: '250000',
     university: 'University of Ibadan',
-    image: 'https://picsum.photos/400/300?random=3',
+    image: 'https://picsum.photos/seed/laptop-desk/400/300',
     hint: 'laptop electronics',
   },
   {
@@ -54,7 +54,7 @@ const products = [
     name: 'UNILAG Branded Hoodie',
     price: '12000',
     university: 'University of Lagos',
-    image: 'https://picsum.photos/400/300?random=4',
+    image: 'https://picsum.photos/seed/hoodie-style/400/300',
     hint: 'hoodie clothing',
   },
   {
@@ -62,7 +62,7 @@ const products = [
     name: 'Intro to Nigerian History',
     price: '7500',
     university: 'Obafemi Awolowo University',
-    image: 'https://picsum.photos/400/300?random=5',
+    image: 'https://picsum.photos/seed/history-book/400/300',
     hint: 'textbook history',
   },
   {
@@ -70,7 +70,7 @@ const products = [
     name: 'Mini Dorm Room Fridge',
     price: '45000',
     university: 'Ahmadu Bello University',
-    image: 'https://picsum.photos/400/300?random=6',
+    image: 'https://picsum.photos/seed/mini-fridge/400/300',
     hint: 'fridge appliance',
   },
 ];

@@ -1,14 +1,33 @@
-{
-  "rules": {
-    "schools": {
-      ".read": "allow read; // All users can read the list of schools",
-      ".write": "allow write: if false; // No one can write to the schools collection"
-    },
-    "users": {
-      "$uid": {
-        ".read": "allow read: if request.auth.uid == $uid;",
-        ".write": "allow write: if request.auth.uid == $uid;"
-      }
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Allow public read access to schools
+    match /schools/{schoolId} {
+      allow read: if true;
+      allow write: if false; // Only superadmin can write via server-side logic
+    }
+
+    // Users can only manage their own data
+    match /users/{userId} {
+      allow read, update: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null;
+    }
+
+    // Products can be read by anyone, but only created/updated by the vendor
+    match /products/{productId} {
+      allow read: if true;
+      allow create, update: if request.auth != null && request.resource.data.vendorId == request.auth.uid;
+      allow delete: if resource.data.vendorId == request.auth.uid;
+    }
+
+    // Orders can only be created by an authenticated user (the buyer)
+    // Orders can be read by the buyer, the vendor, or an authenticated rider
+    match /orders/{orderId} {
+      allow create: if request.auth != null && request.resource.data.buyerId == request.auth.uid;
+      allow read: if request.auth != null && (resource.data.buyerId == request.auth.uid || resource.data.vendorId == request.auth.uid || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'rider');
+      allow update: if request.auth != null && (resource.data.vendorId == request.auth.uid || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'rider' && request.resource.data.riderId == request.auth.uid));
     }
   }
 }

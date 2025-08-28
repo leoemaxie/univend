@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   DollarSign,
   LogIn,
+  ShoppingCart,
 } from 'lucide-react';
 
 import {
@@ -40,12 +41,14 @@ import { getSchools, type School as SchoolType } from '@/lib/schools';
 import React from 'react';
 import { Skeleton } from '../ui/skeleton';
 import { useSession, signOut } from '@/auth/provider';
+import { useCart } from '@/hooks/use-cart';
 
 export default function Header() {
   const [schools, setSchools] = React.useState<SchoolType[]>([]);
   const [loading, setLoading] = React.useState(true);
   const { session } = useSession();
   const user = session?.user;
+  const { cart } = useCart();
 
   React.useEffect(() => {
     const fetchSchools = async () => {
@@ -58,7 +61,7 @@ export default function Header() {
   }, []);
 
   const handleSignOut = () => {
-    signOut();
+    signOut({ callbackUrl: '/' });
   };
 
 
@@ -81,10 +84,10 @@ export default function Header() {
               <nav className="grid gap-6 text-lg font-medium mt-8">
                 <Logo />
                 <Link
-                  href="/vendor/add-product"
+                  href="/products"
                   className="text-muted-foreground hover:text-foreground"
                 >
-                  Sell a Product
+                  Browse Products
                 </Link>
                 <Link
                   href="/dashboard"
@@ -93,7 +96,7 @@ export default function Header() {
                   Dashboard
                 </Link>
                 <Link
-                  href="/wallet"
+                  href="#"
                   className="text-muted-foreground hover:text-foreground"
                 >
                   Wallet
@@ -134,13 +137,16 @@ export default function Header() {
                 </SelectContent>
               </Select>
             )}
-
-            {user && (
-              <Button asChild variant="outline">
-                <Link href="/vendor/add-product">Sell a Product</Link>
-              </Button>
-            )}
           </div>
+           <Button asChild variant="ghost" size="icon">
+                <Link href="/cart">
+                    <ShoppingCart />
+                    {cart.length > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">{cart.length}</span>
+                    )}
+                    <span className="sr-only">Cart</span>
+                </Link>
+            </Button>
           <ThemeToggle />
           {user ? (
             <DropdownMenu>
@@ -174,14 +180,15 @@ export default function Header() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                  <DropdownMenuItem>
-                    <LayoutDashboard className="mr-2 h-4 w-4" />
-                    <span>Dashboard</span>
+                 <DropdownMenuItem asChild>
+                    <Link href="/dashboard">
+                        <LayoutDashboard className="mr-2 h-4 w-4" />
+                        <span>Dashboard</span>
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
                     <Wallet className="mr-2 h-4 w-4" />
                     <span>Wallet</span>
-                    <span className="ml-auto text-sm font-bold">$0.00</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
                     <User className="mr-2 h-4 w-4" />
@@ -190,16 +197,18 @@ export default function Header() {
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                  <DropdownMenuLabel>Roles</DropdownMenuLabel>
+                  <DropdownMenuLabel>Your Role: {user.role}</DropdownMenuLabel>
                   <DropdownMenuItem asChild>
-                    <Link href="/vendor/add-product">
+                    <Link href="/dashboard">
                       <BookUser className="mr-2 h-4 w-4" />
-                      <span>Vendor</span>
+                      <span>{user.role === 'vendor' ? 'Vendor Dashboard' : 'Become a Vendor'}</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <DollarSign className="mr-2 h-4 w-4" />
-                    <span>Rider</span>
+                  <DropdownMenuItem asChild>
+                     <Link href="/dashboard">
+                        <DollarSign className="mr-2 h-4 w-4" />
+                        <span>{user.role === 'rider' ? 'Rider Dashboard' : 'Become a Rider'}</span>
+                     </Link>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />

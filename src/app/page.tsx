@@ -94,7 +94,7 @@ export default function Home() {
                 </Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-                <Link href="/vendor/add-product">
+                <Link href="/dashboard">
                     Sell an Item
                 </Link>
             </Button>
@@ -159,9 +159,11 @@ export default function Home() {
                   <p className="text-2xl font-bold text-primary">
                   ₦{new Intl.NumberFormat('en-NG').format(Number(product.price))}
                   </p>
-                  <Button size="sm" variant="outline">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Add to Cart
+                  <Button asChild size="sm" variant="outline">
+                    <Link href={`/products/${product.id}`}>
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Add to Cart
+                    </Link>
                   </Button>
                 </div>
               </CardContent>

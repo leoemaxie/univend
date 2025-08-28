@@ -34,7 +34,7 @@ export default function SignInPage() {
             <Label htmlFor="password">Password</Label>
             <Input id="password" type="password" required />
           </div>
-          <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
+          <Button type="submit" className="w-full">
             Sign In
           </Button>
         </form>

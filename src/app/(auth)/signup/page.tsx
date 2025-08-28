@@ -71,7 +71,7 @@ export default function SignUpPage() {
           <Label htmlFor="password">Password</Label>
           <Input id="password" type="password" />
         </div>
-        <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
+        <Button type="submit" className="w-full">
           Create Account
         </Button>
       </CardContent>

@@ -166,7 +166,7 @@ export default function AddProductPage() {
                         {isPending ? (
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         ) : (
-                          <Sparkles className="mr-2 h-4 w-4 text-accent" />
+                          <Sparkles className="mr-2 h-4 w-4 text-primary" />
                         )}
                         Generate
                       </Button>
@@ -192,7 +192,7 @@ export default function AddProductPage() {
                 )}
               />
 
-              <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
+              <Button type="submit" className="w-full">
                 Add Product to Catalog
               </Button>
             </form>

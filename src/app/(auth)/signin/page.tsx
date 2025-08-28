@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,8 +13,25 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/logo';
+import { useFormState, useFormStatus } from 'react-dom';
+import { authenticate } from './actions';
+import { useToast } from '@/hooks/use-toast';
+import { useEffect } from 'react';
 
 export default function SignInPage() {
+  const [errorMessage, dispatch] = useFormState(authenticate, undefined);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (errorMessage) {
+      toast({
+        variant: 'destructive',
+        title: 'Authentication Failed',
+        description: errorMessage,
+      });
+    }
+  }, [errorMessage, toast]);
+
   return (
     <Card className="w-full max-w-sm">
       <CardHeader className="text-center">
@@ -25,22 +44,26 @@ export default function SignInPage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form className="space-y-4">
+        <form action={dispatch} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="m@example.com" required />
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="m@example.com"
+              required
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" required />
+            <Input id="password" name="password" type="password" required />
           </div>
-          <Button type="submit" className="w-full">
-            Sign In
-          </Button>
+          <LoginButton />
         </form>
       </CardContent>
       <CardFooter className="flex-col gap-2">
-         <div className="text-sm text-muted-foreground">
+        <div className="text-sm text-muted-foreground">
           <Link href="#" className="underline">
             Forgot your password?
           </Link>
@@ -53,5 +76,14 @@ export default function SignInPage() {
         </div>
       </CardFooter>
     </Card>
+  );
+}
+
+function LoginButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" className="w-full" aria-disabled={pending}>
+      Sign In
+    </Button>
   );
 }

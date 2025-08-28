@@ -1,0 +1,18 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Schools: Allow public read, but no writes
+    match /schools/{schoolId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Users: Allow users to read and write their own data
+    match /users/{userId} {
+      allow read, update, delete: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null;
+    }
+  }
+}

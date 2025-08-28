@@ -22,10 +22,31 @@ import { Logo } from '@/components/logo';
 import { getSchools, type School } from '@/lib/schools';
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useFormState, useFormStatus } from 'react-dom';
+import { signup } from './actions';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 export default function SignUpPage() {
   const [schools, setSchools] = useState<School[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+  const router = useRouter();
+
+  const [state, dispatch] = useFormState(signup, { message: null });
+
+  useEffect(() => {
+    if (state.message) {
+      toast({
+        variant: state.success ? 'default' : 'destructive',
+        title: state.success ? 'Success!' : 'Error',
+        description: state.message,
+      });
+      if(state.success) {
+        router.push('/');
+      }
+    }
+  }, [state, toast, router]);
 
   useEffect(() => {
     const fetchSchools = async () => {
@@ -43,64 +64,83 @@ export default function SignUpPage() {
         <div className="flex justify-center mb-4">
           <Logo />
         </div>
-        <CardTitle className="text-2xl font-headline">Create an Account</CardTitle>
-        <CardDescription>
-          Join the campus marketplace today.
-        </CardDescription>
+        <CardTitle className="text-2xl font-headline">
+          Create an Account
+        </CardTitle>
+        <CardDescription>Join the campus marketplace today.</CardDescription>
       </CardHeader>
-      <CardContent className="grid gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="full-name">Full Name</Label>
-          <Input id="full-name" placeholder="John Doe" required />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" placeholder="m@example.com" required />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="school">University</Label>
-          {loading ? (
-             <Skeleton className="h-10 w-full" />
-          ) : (
-            <Select>
+      <form action={dispatch}>
+        <CardContent className="grid gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="fullName">Full Name</Label>
+            <Input name="fullName" id="fullName" placeholder="John Doe" required />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              name="email"
+              id="email"
+              type="email"
+              placeholder="m@example.com"
+              required
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="school">University</Label>
+            {loading ? (
+              <Skeleton className="h-10 w-full" />
+            ) : (
+              <Select name="school" required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select your university" />
+                </SelectTrigger>
+                <SelectContent>
+                  {schools.map((school) => (
+                    <SelectItem key={school.domain} value={school.domain}>
+                      {school.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="role">I am a...</Label>
+            <Select name="role" required>
               <SelectTrigger>
-                <SelectValue placeholder="Select your university" />
+                <SelectValue placeholder="Select your role" />
               </SelectTrigger>
               <SelectContent>
-                {schools.map((school) => (
-                   <SelectItem key={school.domain} value={school.domain}>{school.name}</SelectItem>
-                ))}
+                <SelectItem value="buyer">Buyer</SelectItem>
+                <SelectItem value="vendor">Vendor</SelectItem>
+                <SelectItem value="rider">Rider</SelectItem>
               </SelectContent>
             </Select>
-          )}
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="role">I am a...</Label>
-          <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="Select your role" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="buyer">Buyer</SelectItem>
-              <SelectItem value="vendor">Vendor</SelectItem>
-              <SelectItem value="rider">Rider</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="password">Password</Label>
-          <Input id="password" type="password" />
-        </div>
-        <Button type="submit" className="w-full">
-          Create Account
-        </Button>
-      </CardContent>
-      <CardFooter className="text-center text-sm text-muted-foreground">
-        Already have an account?{' '}
-        <Link href="/signin" className="underline">
-          Sign In
-        </Link>
-      </CardFooter>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="password">Password</Label>
+            <Input name="password" id="password" type="password" required />
+          </div>
+          <SignUpButton />
+        </CardContent>
+        <CardFooter className="flex-col text-center text-sm text-muted-foreground">
+          <p>
+            Already have an account?{' '}
+            <Link href="/signin" className="underline">
+              Sign In
+            </Link>
+          </p>
+        </CardFooter>
+      </form>
     </Card>
+  );
+}
+
+function SignUpButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" className="w-full" disabled={pending}>
+      {pending ? 'Creating Account...' : 'Create Account'}
+    </Button>
   );
 }

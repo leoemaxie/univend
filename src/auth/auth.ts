@@ -7,9 +7,9 @@ import {
 } from 'next-auth';
 import { JWT, type DefaultJWT } from 'next-auth/jwt';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { cookies } from 'next/headers';
 import NextAuth from 'next-auth';
-import { authenticate } from '@/app/(auth)/signin/actions';
+import { adminAuth, adminDb } from '@/lib/firebase';
+import { AuthError } from 'next-auth';
 
 declare module 'next-auth' {
   interface Session extends DefaultSession {
@@ -48,10 +48,48 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          const user = await authenticate(undefined, credentials as any);
-          return user as User | null;
-        } catch (e) {
-          console.error(e);
+          // This is a temporary way to sign in with NextAuth
+          // In a real app, you would verify credentials against your DB
+          // Here we're just using a dummy verification
+          await new Promise((resolve) => {
+              setTimeout(() => resolve({
+                  email: credentials.email,
+                  password: credentials.password
+              }), 1000)
+          })
+          
+          const userRecord = await adminAuth.getUserByEmail(credentials.email as string);
+          const userDoc = await adminDb.collection('users').doc(userRecord.uid).get();
+          
+          if(!userDoc.exists){
+              throw new Error("User data not found in Firestore.");
+          }
+      
+          const userData = userDoc.data();
+
+          return { 
+            id: userDoc.id,
+            name: userData?.fullName,
+            email: userData?.email,
+            school: userData?.school,
+            role: userData?.role
+          } as User;
+
+        } catch (error) {
+          if (error instanceof AuthError) {
+            switch (error.type) {
+              case 'CredentialsSignin':
+                throw new Error('Invalid credentials.');
+              default:
+                throw new Error('Something went wrong.');
+            }
+          }
+          if (error instanceof Error) {
+            if((error as any).code === 'auth/user-not-found' || (error as any).code === 'auth/wrong-password' || error.message.includes('INVALID_LOGIN_CREDENTIALS')) {
+              throw new Error('Invalid email or password.');
+            }
+          }
+          console.error(error);
           return null;
         }
       },

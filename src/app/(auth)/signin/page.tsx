@@ -17,10 +17,12 @@ import { useFormState, useFormStatus } from 'react-dom';
 import { authenticate } from './actions';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function SignInPage() {
   const [errorMessage, dispatch] = useFormState(authenticate, undefined);
   const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     if (errorMessage) {
@@ -29,8 +31,12 @@ export default function SignInPage() {
         title: 'Authentication Failed',
         description: errorMessage,
       });
+    } else if(errorMessage === undefined) {
+      // On successful login, the action doesn't return an error.
+      // We can redirect here. A better way might be to handle this in middleware.
+      router.push('/');
     }
-  }, [errorMessage, toast]);
+  }, [errorMessage, toast, router]);
 
   return (
     <Card className="w-full max-w-sm">

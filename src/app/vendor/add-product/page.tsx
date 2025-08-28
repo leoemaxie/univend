@@ -183,9 +183,9 @@ export default function AddProductPage() {
                 name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Price ($)</FormLabel>
+                    <FormLabel>Price (₦)</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="e.g., 99.99" {...field} />
+                      <Input type="number" placeholder="e.g., 15000" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

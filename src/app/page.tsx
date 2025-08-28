@@ -28,48 +28,48 @@ const products = [
   {
     id: 1,
     name: 'Advanced Engineering Mathematics',
-    price: '2000',
-    university: 'Stanford University',
+    price: '15000',
+    university: 'University of Lagos',
     image: 'https://picsum.photos/400/300?random=1',
     hint: 'textbook math',
   },
   {
     id: 2,
-    name: 'Comfy Bedside Lamp',
-    price: '9000',
-    university: 'Harvard University',
+    name: 'Stylish Reading Lamp',
+    price: '8500',
+    university: 'Covenant University',
     image: 'https://picsum.photos/400/300?random=2',
     hint: 'lamp decor',
   },
   {
     id: 3,
-    name: 'Noise-Cancelling Headphones',
-    price: '15500',
-    university: 'MIT',
+    name: 'HP Elitebook Laptop',
+    price: '250000',
+    university: 'University of Ibadan',
     image: 'https://picsum.photos/400/300?random=3',
-    hint: 'headphones electronics',
+    hint: 'laptop electronics',
   },
   {
     id: 4,
-    name: 'University Hoodie',
-    price: '30000',
-    university: 'Stanford University',
+    name: 'UNILAG Branded Hoodie',
+    price: '12000',
+    university: 'University of Lagos',
     image: 'https://picsum.photos/400/300?random=4',
     hint: 'hoodie clothing',
   },
   {
     id: 5,
-    name: 'Introduction to Psychology',
-    price: '10000',
-    university: 'Yale University',
+    name: 'Intro to Nigerian History',
+    price: '7500',
+    university: 'Obafemi Awolowo University',
     image: 'https://picsum.photos/400/300?random=5',
-    hint: 'textbook psychology',
+    hint: 'textbook history',
   },
   {
     id: 6,
-    name: 'Mini Fridge for Dorm Room',
-    price: '15000',
-    university: 'Harvard University',
+    name: 'Mini Dorm Room Fridge',
+    price: '45000',
+    university: 'Ahmadu Bello University',
     image: 'https://picsum.photos/400/300?random=6',
     hint: 'fridge appliance',
   },
@@ -157,7 +157,7 @@ export default function Home() {
                 <div className="flex-grow"></div>
                 <div className="flex justify-between items-center mt-auto">
                   <p className="text-2xl font-bold text-primary">
-                  ₦{product.price}
+                  ₦{new Intl.NumberFormat('en-NG').format(Number(product.price))}
                   </p>
                   <Button size="sm" variant="outline">
                     <PlusCircle className="mr-2 h-4 w-4" />

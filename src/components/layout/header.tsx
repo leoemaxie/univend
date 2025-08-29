@@ -99,7 +99,7 @@ export default function Header() {
                   Dashboard
                 </Link>
                 <Link
-                  href="#"
+                  href="/wallet"
                   className="text-muted-foreground hover:text-foreground"
                 >
                   Wallet
@@ -189,13 +189,17 @@ export default function Header() {
                         <span>Dashboard</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Wallet className="mr-2 h-4 w-4" />
-                    <span>Wallet</span>
+                  <DropdownMenuItem asChild>
+                     <Link href="/wallet">
+                        <Wallet className="mr-2 h-4 w-4" />
+                        <span>Wallet</span>
+                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </Link>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />

@@ -1,23 +1,18 @@
 'use client';
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { onAuthStateChanged, User, signOut as firebaseSignOut } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
+import type { UserDetails } from '@/lib/types';
 
-type UserDetails = {
-    fullName: string;
-    email: string;
-    school: string;
-    role: 'buyer' | 'vendor' | 'rider';
-    createdAt: string;
-}
 
 interface AuthContextType {
   user: User | null;
   userDetails: UserDetails | null;
   loading: boolean;
   signOut: () => void;
+  refreshUserDetails: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,34 +22,44 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setUser(user);
-        // Fetch user details from Firestore
+  const fetchUserDetails = useCallback(async (user: User | null) => {
+    if (user) {
         const userDocRef = doc(db, 'users', user.uid);
         const userDocSnap = await getDoc(userDocRef);
         if (userDocSnap.exists()) {
           setUserDetails(userDocSnap.data() as UserDetails);
         } else {
-          // This case might happen if Firestore doc creation fails during signup
           setUserDetails(null);
         }
       } else {
-        setUser(null);
         setUserDetails(null);
       }
+  }, []);
+
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setUser(user);
+      await fetchUserDetails(user);
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [fetchUserDetails]);
 
   const signOut = async () => {
     await firebaseSignOut(auth);
     // User state will be updated by the onAuthStateChanged listener
   };
   
+  const refreshUserDetails = useCallback(async () => {
+    if(user) {
+        setLoading(true);
+        await fetchUserDetails(user);
+        setLoading(false);
+    }
+  }, [user, fetchUserDetails]);
+
   if (loading) {
       return (
           <div className='flex h-screen w-full items-center justify-center'>
@@ -64,7 +69,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, userDetails, loading, signOut }}>
+    <AuthContext.Provider value={{ user, userDetails, loading, signOut, refreshUserDetails }}>
       {children}
     </AuthContext.Provider>
   );

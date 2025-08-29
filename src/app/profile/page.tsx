@@ -1,0 +1,176 @@
+
+'use client';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import React, { useState, useTransition } from 'react';
+
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2, User, Save } from 'lucide-react';
+import { updateProfile } from './actions';
+import Image from 'next/image';
+import { useAuth } from '@/auth/provider';
+import { useRouter } from 'next/navigation';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
+const formSchema = z.object({
+  firstName: z.string().min(2, "First name must be at least 2 characters."),
+  lastName: z.string().min(2, "Last name must be at least 2 characters."),
+  photo: z.instanceof(File).optional(),
+});
+
+export default function ProfilePage() {
+  const { toast } = useToast();
+  const [isSubmitting, startSubmitting] = useTransition();
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const { user, userDetails, loading, refreshUserDetails } = useAuth();
+  const router = useRouter();
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    values: {
+        firstName: userDetails?.firstName || '',
+        lastName: userDetails?.lastName || '',
+    }
+  });
+
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      form.setValue('photo', file, { shouldValidate: true });
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!user) {
+      toast({ variant: 'destructive', title: "Not authenticated" });
+      return;
+    }
+  
+    startSubmitting(async () => {
+      const formData = new FormData();
+      formData.append('firstName', values.firstName);
+      formData.append('lastName', values.lastName);
+      if (values.photo) {
+        formData.append('photo', values.photo);
+      }
+      formData.append('userId', user.uid);
+  
+      const result = await updateProfile(formData);
+  
+      if (result.success) {
+        toast({ title: "Profile Updated!", description: "Your changes have been saved." });
+        await refreshUserDetails();
+        router.refresh();
+      } else {
+        toast({ variant: 'destructive', title: "Update Failed", description: result.error });
+      }
+    });
+  }
+
+  if (loading) {
+    return <div className="container text-center py-12"><Loader2 className="h-8 w-8 animate-spin mx-auto" /></div>
+  }
+  
+  if (!user || !userDetails) {
+    router.push('/signin?callbackUrl=/profile');
+    return null;
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle className="font-headline text-3xl">Your Profile</CardTitle>
+          <CardDescription>Manage your personal information.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <div className='flex items-center gap-4'>
+                <Avatar className="h-20 w-20">
+                  <AvatarImage src={imagePreview || user.photoURL || `https://avatar.vercel.sh/${user.email}.png`} alt={user.displayName || 'User'}/>
+                  <AvatarFallback>{userDetails.firstName.charAt(0)}{userDetails.lastName.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <FormField
+                  control={form.control}
+                  name="photo"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>Profile Picture</FormLabel>
+                      <FormControl>
+                        <Input type="file" accept="image/*" onChange={handleImageChange} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>First Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="John" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Last Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Doe" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+              </div>
+
+              <FormItem>
+                  <FormLabel>Email Address</FormLabel>
+                  <Input value={user.email!} disabled />
+                  <FormDescription>You cannot change your email address.</FormDescription>
+              </FormItem>
+
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                )}
+                Save Changes
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

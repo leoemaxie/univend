@@ -55,7 +55,13 @@ export type School = {
     fullName: string;
     email: string;
     school: string;
-    role: 'buyer' | 'vendor' | 'rider';
+    role: 'buyer' | 'vendor' | 'rider' | 'superadminx';
     createdAt: string;
+    photoURL?: string;
 }
   
+export type Wallet = {
+    userId: string;
+    balance: number;
+    updatedAt: string;
+}

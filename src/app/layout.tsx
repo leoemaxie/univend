@@ -10,6 +10,7 @@ import { AuthProvider } from '@/auth/provider';
 export const metadata: Metadata = {
   title: 'Univend - Your Campus Marketplace',
   description: 'Buy and sell products within your university campus.',
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({
@@ -33,7 +34,7 @@ export default function RootLayout({
         <link
           rel="apple-touch-icon"
           sizes="57x57"
-          href="apple-ic/on-57x57.png"
+          href="/apple-icon-57x57.png"
         />
         <link
           rel="apple-touch-icon"
@@ -99,7 +100,6 @@ export default function RootLayout({
           sizes="16x16"
           href="/favicon-16x16.png"
         />
-        <link rel="manifest" href="/manifest.json" />
         <meta name="msapplication-TileColor" content="#ffffff" />
         <meta name="msapplication-TileImage" content="/ms-icon-144x144.png" />
         <meta name="theme-color" content="#ffffff"></meta>

@@ -35,7 +35,9 @@ export default function WalletPage() {
                 getWalletTransactions(user.uid)
             ]).then(([walletData, transactionsData]) => {
                 setWallet(walletData);
-                setTransactions(transactionsData);
+                // Sort transactions by date descending (newest first)
+                const sortedTransactions = transactionsData.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                setTransactions(sortedTransactions);
             }).catch(error => {
                 console.error("Failed to fetch wallet data:", error);
                 toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch wallet details.' });

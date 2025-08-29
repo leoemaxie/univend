@@ -113,10 +113,10 @@ export async function getWalletTransactions(userId: string): Promise<WalletTrans
     }
   
     const transactionsCollection = collection(db, 'transactions');
+    // Removed orderBy to prevent missing index error. Sorting will be done on the client.
     const q = query(
       transactionsCollection,
       where('userId', '==', userId),
-      orderBy('createdAt', 'desc')
     );
   
     const querySnapshot = await getDocs(q);

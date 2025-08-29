@@ -3,7 +3,8 @@
 
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
-import { db, auth, updateProfile as updateFirebaseProfile } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
+import { updateProfile as updateFirebaseProfile } from 'firebase/auth';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { v2 as cloudinary } from 'cloudinary';
 import { v4 as uuidv4 } from 'uuid';
@@ -50,7 +51,14 @@ export async function updateProfile(formData: FormData): Promise<ActionResponse>
 
   try {
     const userRef = doc(db, "users", userId);
-    let photoURL: string | undefined = undefined;
+    const userSnap = await getDoc(userRef);
+    
+    if(!userSnap.exists()){
+        return { success: false, error: "User not found." };
+    }
+    const existingData = userSnap.data();
+
+    let photoURL: string | undefined = existingData.photoURL;
 
     // Handle photo upload
     if (photo && photo.size > 0) {
@@ -80,17 +88,6 @@ export async function updateProfile(formData: FormData): Promise<ActionResponse>
     const transformedFirstName = toSentenceCase(firstName);
     const transformedLastName = toSentenceCase(lastName);
     const fullName = `${transformedFirstName} ${transformedLastName}`;
-
-    const userInAuth = auth.currentUser;
-    if (!userInAuth || userInAuth.uid !== userId) {
-        return { success: false, error: "Authentication mismatch." };
-    }
-
-    // Update Firebase Auth Profile
-    await updateFirebaseProfile(userInAuth, {
-      displayName: fullName,
-      ...(photoURL && { photoURL }),
-    });
     
     const updates: Record<string, any> = {
         firstName: transformedFirstName,

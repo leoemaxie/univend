@@ -37,6 +37,7 @@ export type School = {
     riderId?: string;
     createdAt: string;
     university: string;
+    deliveryAddress?: string;
   };
   
   export type Delivery = {
@@ -58,6 +59,7 @@ export type School = {
     role: 'buyer' | 'vendor' | 'rider' | 'superadminx';
     createdAt: string;
     photoURL?: string;
+    address?: string;
 }
   
 export type Wallet = {

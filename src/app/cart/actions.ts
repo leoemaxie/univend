@@ -15,7 +15,7 @@ type ActionResponse = {
   orderId?: string;
 };
 
-export async function placeOrder(cart: CartItem[], user: { uid: string, displayName?: string | null, university?: string }): Promise<ActionResponse> {
+export async function placeOrder(cart: CartItem[], user: { uid: string, displayName?: string | null, university?: string, address?: string }): Promise<ActionResponse> {
   if (!user) {
     return { success: false, error: 'Authentication required.' };
   }
@@ -53,6 +53,7 @@ export async function placeOrder(cart: CartItem[], user: { uid: string, displayN
     status: 'pending',
     createdAt: new Date().toISOString(),
     university: user.university || '',
+    deliveryAddress: user.address || 'No address provided',
   };
 
   try {

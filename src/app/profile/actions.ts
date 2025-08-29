@@ -16,6 +16,7 @@ const toSentenceCase = (str: string) => {
 const UpdateProfileSchema = z.object({
   firstName: z.string().min(2),
   lastName: z.string().min(2),
+  address: z.string().optional(),
   photo: z.instanceof(File).optional(),
   userId: z.string(),
 });
@@ -33,7 +34,7 @@ export async function updateProfile(formData: FormData): Promise<ActionResponse>
     return { success: false, error: "Invalid data provided." };
   }
 
-  const { userId, firstName, lastName, photo } = validationResult.data;
+  const { userId, firstName, lastName, address, photo } = validationResult.data;
 
   try {
     const userRef = doc(db, "users", userId);
@@ -84,6 +85,7 @@ export async function updateProfile(formData: FormData): Promise<ActionResponse>
         firstName: transformedFirstName,
         lastName: transformedLastName,
         fullName,
+        address: address || '',
         ...(photoURL && { photoURL }),
     });
 

@@ -78,8 +78,8 @@ export default function RiderDashboard({ userId, university }: { userId: string,
                     <TableHeader>
                         <TableRow>
                             <TableHead>Order ID</TableHead>
-                            <TableHead>From</TableHead>
-                            <TableHead>To</TableHead>
+                            <TableHead>Deliver To</TableHead>
+                            <TableHead>Address</TableHead>
                             <TableHead>Earnings</TableHead>
                             <TableHead>Action</TableHead>
                         </TableRow>
@@ -88,8 +88,8 @@ export default function RiderDashboard({ userId, university }: { userId: string,
                         {availableDeliveries.map(order => (
                              <TableRow key={order.id}>
                                 <TableCell className="font-mono text-xs">{order.id.substring(0, 8)}...</TableCell>
-                                <TableCell>{order.vendorId.substring(0,8)}</TableCell>
                                 <TableCell>{order.buyerName}</TableCell>
+                                <TableCell>{order.deliveryAddress}</TableCell>
                                 <TableCell>₦500</TableCell>
                                 <TableCell>
                                     <AcceptDeliveryButton orderId={order.id} riderId={userId} />

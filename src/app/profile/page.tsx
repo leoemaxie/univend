@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, User, Save } from 'lucide-react';
@@ -39,6 +40,7 @@ import type { UserDetails } from '@/lib/types';
 const formSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters."),
   lastName: z.string().min(2, "Last name must be at least 2 characters."),
+  address: z.string().optional(),
   photo: z.instanceof(File).optional(),
 });
 
@@ -57,14 +59,20 @@ export default function ProfilePage() {
     values: {
         firstName: userDetails?.firstName || '',
         lastName: userDetails?.lastName || '',
+        address: userDetails?.address || '',
     }
   });
   
   React.useEffect(() => {
     if(userDetails){
         setSelectedRole(userDetails.role);
+        form.reset({
+            firstName: userDetails.firstName || '',
+            lastName: userDetails.lastName || '',
+            address: userDetails.address || '',
+        })
     }
-  }, [userDetails]);
+  }, [userDetails, form]);
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -88,6 +96,9 @@ export default function ProfilePage() {
       const formData = new FormData();
       formData.append('firstName', values.firstName);
       formData.append('lastName', values.lastName);
+      if (values.address) {
+        formData.append('address', values.address);
+      }
       if (values.photo) {
         formData.append('photo', values.photo);
       }
@@ -189,6 +200,26 @@ export default function ProfilePage() {
                     )}
                   />
               </div>
+
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Delivery Address</FormLabel>
+                    <FormControl>
+                        <Textarea
+                        placeholder="e.g. Queen Amina Hall, Block B, Room 101"
+                        {...field}
+                        />
+                    </FormControl>
+                    <FormDescription>
+                        Your on-campus address for deliveries.
+                    </FormDescription>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
 
               <FormItem>
                   <FormLabel>Email Address</FormLabel>

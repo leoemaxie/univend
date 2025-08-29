@@ -24,9 +24,15 @@ export default function CartPage() {
   const total = cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
 
   const handleCheckout = () => {
-    if(!user) {
+    if(!user || !userDetails) {
         toast({ variant: 'destructive', title: "Authentication required", description: "Please sign in to place an order." });
         router.push('/signin?callbackUrl=/cart');
+        return;
+    }
+
+    if (!userDetails.address) {
+        toast({ variant: 'destructive', title: "Address Required", description: "Please add a delivery address to your profile before placing an order." });
+        router.push('/profile');
         return;
     }
 
@@ -34,7 +40,8 @@ export default function CartPage() {
         const fullUser = {
             uid: user.uid,
             displayName: user.displayName,
-            university: userDetails?.school
+            university: userDetails.school,
+            address: userDetails.address
         }
         const result = await placeOrder(cart, fullUser);
         if(result.success) {

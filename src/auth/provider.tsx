@@ -1,3 +1,4 @@
+
 'use client';
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { onAuthStateChanged, User, signOut as firebaseSignOut } from 'firebase/auth';
@@ -54,9 +55,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   
   const refreshUserDetails = useCallback(async () => {
     if(user) {
-        setLoading(true);
+        // No need to set loading to true here to avoid a full screen loader flash
         await fetchUserDetails(user);
-        setLoading(false);
     }
   }, [user, fetchUserDetails]);
 

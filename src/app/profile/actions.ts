@@ -3,11 +3,9 @@
 
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
-import { db, auth } from '@/lib/firebase';
-import { updateProfile as updateFirebaseProfile } from 'firebase/auth';
+import { db } from '@/lib/firebase';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { v2 as cloudinary } from 'cloudinary';
-import { v4 as uuidv4 } from 'uuid';
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,

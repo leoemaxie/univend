@@ -167,7 +167,7 @@ export default function ProfilePage() {
                     <CardContent className="space-y-8">
                     <div className='flex items-center gap-4'>
                         <Avatar className="h-20 w-20">
-                        <AvatarImage src={imagePreview || user.photoURL || `https://avatar.vercel.sh/${user.email}.png`} alt={user.displayName || 'User'}/>
+                        <AvatarImage src={imagePreview || userDetails?.photoURL || `https://avatar.vercel.sh/${user.email}.png`} alt={user.displayName || 'User'}/>
                         <AvatarFallback>{userDetails.firstName.charAt(0)}{userDetails.lastName.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <FormField

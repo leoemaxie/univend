@@ -4,8 +4,48 @@
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, updateDoc, runTransaction, writeBatch, increment } from 'firebase/firestore';
-import type { Order } from '@/lib/types';
+import type { Order, UserDetails } from '@/lib/types';
 import { getWallet, createTransaction } from '../wallet/actions';
+import { MailerSend, EmailParams, Sender, Recipient } from 'mailersend';
+
+
+async function sendOrderAcceptedEmail(buyerEmail: string, buyerName: string, order: Order) {
+    if (!process.env.MAILERSEND_API_KEY) {
+        console.log("MAILERSEND_API_KEY not set. Skipping buyer confirmation email.");
+        return;
+    }
+
+    const mailerSend = new MailerSend({
+        apiKey: process.env.MAILERSEND_API_KEY,
+    });
+
+    const sentFrom = new Sender("no-reply@trial-yzkq340xke3gJ9o0.mlsender.net", "Univend"); // Use a verified domain
+    const recipients = [new Recipient(buyerEmail, buyerName)];
+    const deliveryStatusMessage = order.deliveryMethod === 'delivery' 
+        ? "It will be assigned to a rider for delivery shortly." 
+        : "It is now ready for pickup at the vendor's designated location.";
+
+    const emailParams = new EmailParams()
+        .setFrom(sentFrom)
+        .setTo(recipients)
+        .setSubject(`Your Univend Order #${order.id.substring(0, 8)} has been Accepted!`)
+        .setHtml(
+            `<h1>Great News, ${buyerName}!</h1>
+            <p>The vendor has accepted your order. ${deliveryStatusMessage}</p>
+            <h2>Order Summary</h2>
+            <p><strong>Order ID:</strong> ${order.id}</p>
+            <p>We have deducted <strong>₦${order.total.toLocaleString()}</strong> from your wallet for this order.</p>
+            <p>You can view your order details and track its status in your dashboard.</p>`
+        );
+
+    try {
+        await mailerSend.email.send(emailParams);
+        console.log(`Buyer "order accepted" email sent to ${buyerEmail}`);
+    } catch (error) {
+        console.error("Error sending buyer email:", error);
+    }
+}
+
 
 export async function acceptOrder(orderId: string): Promise<{ success: boolean; error?: string }> {
     try {
@@ -22,6 +62,14 @@ export async function acceptOrder(orderId: string): Promise<{ success: boolean; 
             if(order.status !== 'pending-confirmation') {
                 throw new Error('This order has already been actioned.');
             }
+
+            // Fetch buyer details to get their email
+            const buyerRef = doc(db, 'users', order.buyerId);
+            const buyerDoc = await transaction.get(buyerRef);
+            if (!buyerDoc.exists()) {
+                throw new Error("Buyer details not found.");
+            }
+            const buyerDetails = buyerDoc.data() as UserDetails;
 
             // Deduct funds from buyer's wallet
             const walletRef = doc(db, 'wallets', order.buyerId);
@@ -56,6 +104,10 @@ export async function acceptOrder(orderId: string): Promise<{ success: boolean; 
                 status: newStatus,
                 paymentStatus: 'paid'
             });
+
+            // Send notification email outside of the transaction
+            // We pass the necessary details to the function
+            await sendOrderAcceptedEmail(buyerDetails.email, order.buyerName, order);
         });
 
         revalidatePath('/dashboard');
@@ -163,7 +215,7 @@ export async function markAsDelivered(orderId: string): Promise<{ success: boole
             const vendorWalletRef = doc(db, 'wallets', order.vendorId);
             await getWallet(order.vendorId); // Ensure wallet exists
             
-            const vendorEarnings = order.subtotal - order.serviceCharge;
+            const vendorEarnings = order.subtotal; // Vendor gets the full subtotal
 
             // 1. Credit vendor's wallet
             transaction.update(vendorWalletRef, { balance: increment(vendorEarnings) });

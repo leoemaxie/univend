@@ -132,7 +132,7 @@ export async function placeOrder(cart: CartItem[], user: { uid: string; displayN
   const subtotal = orderItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const deliveryFee = deliveryMethod === 'delivery' ? DELIVERY_FEE : 0;
   const serviceCharge = subtotal * SERVICE_CHARGE_RATE;
-  const total = subtotal + deliveryFee + serviceCharge;
+  const total = subtotal + deliveryFee; // Service charge is not added to total paid by buyer, but deducted from vendor.
 
   const order: Order = {
     id: orderId,

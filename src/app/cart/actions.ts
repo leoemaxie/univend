@@ -1,7 +1,7 @@
 
 'use server';
 
-import { messaging as adminMessaging, db as adminDb } from '@/lib/firebase-admin';
+import { getAdminServices } from '@/lib/firebase-admin';
 import type { CartItem } from '@/hooks/use-cart';
 import type { Order, OrderItem, UserDetails, DeliveryMethod } from '@/lib/types';
 import { DELIVERY_FEE, SERVICE_CHARGE_RATE } from '@/lib/types';
@@ -18,6 +18,13 @@ type ActionResponse = {
 };
 
 async function sendOrderNotification(vendorId: string, orderId: string, buyerName: string) {
+    const { messaging: adminMessaging, db: adminDb, success } = getAdminServices();
+
+    if (!success || !adminMessaging || !adminDb) {
+        console.error("Firebase Admin not available. Skipping push notification.");
+        return;
+    }
+
     try {
         const vendorRef = adminDb.collection('users').doc(vendorId);
         const vendorDoc = await vendorRef.get();

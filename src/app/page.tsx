@@ -1,3 +1,4 @@
+
 import {
   Card,
   CardContent,
@@ -29,12 +30,145 @@ const categories = [
   { name: 'Food & Groceries', icon: Utensils },
 ];
 
+const staticProducts: Omit<Product, 'vendorId' | 'vendorName' | 'category' | 'description' | 'createdAt' | 'status'>[] = [
+  {
+    "id": "1",
+    "title": "Advanced Engineering Mathematics",
+    "price": 15000,
+    "university": "University of Lagos",
+    "imageUrl": "https://source.unsplash.com/400x300/?math,book",
+    "data-ai-hint": "textbook math"
+  },
+  {
+    "id": "2",
+    "title": "Principles of Economics",
+    "price": 12000,
+    "university": "Obafemi Awolowo University",
+    "imageUrl": "https://source.unsplash.com/400x300/?economics,book",
+    "data-ai-hint": "economics textbook"
+  },
+  {
+    "id": "3",
+    "title": "Organic Chemistry Notes",
+    "price": 8000,
+    "university": "University of Ibadan",
+    "imageUrl": "https://source.unsplash.com/400x300/?chemistry,book",
+    "data-ai-hint": "chemistry textbook"
+  },
+  {
+    "id": "4",
+    "title": "Laptop Backpack",
+    "price": 9000,
+    "university": "Ahmadu Bello University",
+    "imageUrl": "https://source.unsplash.com/400x300/?backpack,student",
+    "data-ai-hint": "bag for students"
+  },
+  {
+    "id": "5",
+    "title": "Sneakers (White)",
+    "price": 11000,
+    "university": "University of Benin",
+    "imageUrl": "https://source.unsplash.com/400x300/?sneakers,shoes",
+    "data-ai-hint": "casual student shoes"
+  },
+  {
+    "id": "6",
+    "title": "Ankara Dress",
+    "price": 15000,
+    "university": "University of Port Harcourt",
+    "imageUrl": "https://source.unsplash.com/400x300/?ankara,fashion",
+    "data-ai-hint": "student fashion"
+  },
+  {
+    "id": "7",
+    "title": "Plain White T-Shirt",
+    "price": 3500,
+    "university": "Lagos State University",
+    "imageUrl": "https://source.unsplash.com/400x300/?tshirt,white",
+    "data-ai-hint": "basic student wear"
+  },
+  {
+    "id": "8",
+    "title": "Denim Jacket",
+    "price": 10000,
+    "university": "Covenant University",
+    "imageUrl": "https://source.unsplash.com/400x300/?denim,jacket",
+    "data-ai-hint": "fashion jacket"
+  },
+  {
+    "id": "9",
+    "title": "Jollof Rice & Chicken Pack",
+    "price": 2500,
+    "university": "University of Lagos",
+    "imageUrl": "https://source.unsplash.com/400x300/?jollof,rice",
+    "data-ai-hint": "food delivery"
+  },
+  {
+    "id": "10",
+    "title": "Shawarma (Large)",
+    "price": 2000,
+    "university": "Obafemi Awolowo University",
+    "imageUrl": "https://source.unsplash.com/400x300/?shawarma,food",
+    "data-ai-hint": "fast food"
+  },
+  {
+    "id": "11",
+    "title": "Meat Pie Pack (5 pcs)",
+    "price": 1500,
+    "university": "University of Ibadan",
+    "imageUrl": "https://source.unsplash.com/400x300/?meatpie,food",
+    "data-ai-hint": "snack"
+  },
+  {
+    "id": "12",
+    "title": "Fruit Smoothie",
+    "price": 1200,
+    "university": "Ahmadu Bello University",
+    "imageUrl": "https://source.unsplash.com/400x300/?smoothie,fruit",
+    "data-ai-hint": "healthy drink"
+  },
+  {
+    "id": "13",
+    "title": "Suya (Beef Skewers)",
+    "price": 1800,
+    "university": "University of Benin",
+    "imageUrl": "https://source.unsplash.com/400x300/?suya,grill",
+    "data-ai-hint": "popular student food"
+  },
+  {
+    "id": "14",
+    "title": "Pounded Yam with Egusi Soup",
+    "price": 3000,
+    "university": "University of Port Harcourt",
+    "imageUrl": "https://source.unsplash.com/400x300/?egusi,food",
+    "data_ai_hint": "traditional meal"
+  },
+  {
+    "id": "15",
+    "title": "Burger & Fries",
+    "price": 2200,
+    "university": "Covenant University",
+    "imageUrl": "https://source.unsplash.com/400x300/?burger,fries",
+    "data_ai_hint": "fast food combo"
+  }
+].map(p => ({
+  ...p,
+  // Fill in the missing properties to match the Product type
+  vendorId: 'static-vendor',
+  vendorName: 'Univend',
+  category: 'Featured',
+  description: `A high-quality ${p.title} available at ${p.university}.`,
+  createdAt: new Date().toISOString(),
+  status: 'available' as const,
+}));
+
+
 async function getFeaturedProducts(): Promise<Product[]> {
     const productsCollection = collection(db, 'products');
     const q = query(
         productsCollection,
         orderBy('createdAt', 'desc'),
-        limit(10)
+        limit(15) // Fetch up to 15 products
     );
     const productsSnapshot = await getDocs(q);
     
@@ -42,14 +176,14 @@ async function getFeaturedProducts(): Promise<Product[]> {
       return [];
     }
     
-    // Filter for 'available' status on the client side to avoid needing a composite index
     const allProducts = productsSnapshot.docs.map(doc => doc.data() as Product);
-    return allProducts.filter(product => product.status === 'available').slice(0, 6);
+    return allProducts.filter(product => product.status === 'available');
 }
 
 
 export default async function Home() {
-  const products = await getFeaturedProducts();
+  const dynamicProducts = await getFeaturedProducts();
+  const products = dynamicProducts.length >= 15 ? dynamicProducts : staticProducts.slice(0,6);
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -119,6 +253,8 @@ export default async function Home() {
                     alt={product.title}
                     width={400}
                     height={300}
+                    // @ts-ignore
+                    data-ai-hint={product['data-ai-hint'] || ''}
                     className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
                   />
                 </div>

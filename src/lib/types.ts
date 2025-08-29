@@ -1,5 +1,7 @@
 
 
+export const DELIVERY_FEE = 500;
+
 export type School = {
     name: string;
     type: string;

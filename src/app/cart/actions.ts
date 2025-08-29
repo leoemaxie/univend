@@ -4,13 +4,11 @@
 import { messaging as adminMessaging, db as adminDb } from '@/lib/firebase-admin';
 import type { CartItem } from '@/hooks/use-cart';
 import type { Order, OrderItem, UserDetails, DeliveryMethod } from '@/lib/types';
+import { DELIVERY_FEE } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/firebase';
-import { writeBatch, doc, getDoc, runTransaction } from 'firebase/firestore';
-import { getWallet, createTransaction } from '@/app/wallet/actions';
-
-export const DELIVERY_FEE = 500;
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 type ActionResponse = {
   success: boolean;
@@ -105,7 +103,11 @@ export async function placeOrder(cart: CartItem[], user: { uid: string, displayN
 
   try {
     const orderRef = doc(db, 'orders', orderId);
+    
+    // We will not deduct payment here anymore, but when vendor accepts.
+    // For now, just create the order.
     await setDoc(orderRef, order);
+
 
     // After successfully placing the order, send a notification
     await sendOrderNotification(vendorId, orderId, user.displayName ?? 'A customer');

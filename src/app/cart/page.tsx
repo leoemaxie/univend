@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { MinusCircle, PlusCircle, Trash2, ShoppingCart, Wallet, Truck, Hand } from 'lucide-react';
 import Link from 'next/link';
-import { placeOrder, DELIVERY_FEE } from './actions';
+import { placeOrder } from './actions';
 import { useToast } from '@/hooks/use-toast';
 import { useTransition, useState, useEffect, useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
@@ -18,6 +18,7 @@ import { getWallet } from '../wallet/actions';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import type { DeliveryMethod } from '@/lib/types';
+import { DELIVERY_FEE } from '@/lib/types';
 
 
 export default function CartPage() {
@@ -65,7 +66,7 @@ export default function CartPage() {
         return;
     }
 
-    if (walletBalance === null || walletBalance < total) {
+    if (walletBalance !== null && walletBalance < total) {
         toast({ variant: 'destructive', title: "Insufficient Funds", description: "Your wallet balance is too low. Please fund your wallet before placing an order." });
         router.push('/wallet');
         return;

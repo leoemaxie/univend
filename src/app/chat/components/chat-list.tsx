@@ -22,7 +22,13 @@ export function ChatList() {
         if(user) {
             setLoading(true);
             getChatsForUser(user.uid).then(userChats => {
-                setChats(userChats);
+                // Sort chats by last message timestamp, descending.
+                const sortedChats = userChats.sort((a, b) => {
+                    const timeA = a.lastMessage ? new Date(a.lastMessage.createdAt).getTime() : new Date(a.createdAt).getTime();
+                    const timeB = b.lastMessage ? new Date(b.lastMessage.createdAt).getTime() : new Date(b.createdAt).getTime();
+                    return timeB - timeA;
+                });
+                setChats(sortedChats);
                 setLoading(false);
             })
         }

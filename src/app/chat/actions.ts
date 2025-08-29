@@ -146,7 +146,8 @@ export async function sendMessage(formData: FormData): Promise<ActionResponse<nu
 
 export async function getChatsForUser(userId: string): Promise<Chat[]> {
     const chatsCollection = collection(db, 'chats');
-    const q = query(chatsCollection, where('participantIds', 'array-contains', userId), orderBy('lastMessage.createdAt', 'desc'));
+    // Removed orderby to prevent index error. Sorting will be done on the client.
+    const q = query(chatsCollection, where('participantIds', 'array-contains', userId));
 
     const snapshot = await getDocs(q);
     if (snapshot.empty) {

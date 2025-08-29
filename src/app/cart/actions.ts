@@ -4,11 +4,12 @@
 import { messaging as adminMessaging, db as adminDb } from '@/lib/firebase-admin';
 import type { CartItem } from '@/hooks/use-cart';
 import type { Order, OrderItem, UserDetails, DeliveryMethod } from '@/lib/types';
-import { DELIVERY_FEE } from '@/lib/types';
+import { DELIVERY_FEE, SERVICE_CHARGE_RATE } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { MailerSend, EmailParams, Sender, Recipient } from 'mailersend';
 
 type ActionResponse = {
   success: boolean;
@@ -49,8 +50,49 @@ async function sendOrderNotification(vendorId: string, orderId: string, buyerNam
     }
 }
 
-export async function placeOrder(cart: CartItem[], user: { uid: string, displayName?: string | null, university?: string, address?: string }, deliveryMethod: DeliveryMethod): Promise<ActionResponse> {
-  if (!user) {
+async function sendBuyerConfirmationEmail(buyerEmail: string, buyerName: string, order: Order) {
+    if (!process.env.MAILERSEND_API_KEY) {
+        console.log("MAILERSEND_API_KEY not set. Skipping buyer confirmation email.");
+        return;
+    }
+
+    const mailerSend = new MailerSend({
+        apiKey: process.env.MAILERSEND_API_KEY,
+    });
+
+    const sentFrom = new Sender("no-reply@trial-yzkq340xke3gJ9o0.mlsender.net", "Univend"); // Use a verified domain
+    const recipients = [new Recipient(buyerEmail, buyerName)];
+
+    const emailParams = new EmailParams()
+        .setFrom(sentFrom)
+        .setTo(recipients)
+        .setSubject(`Your Univend Order Confirmation #${order.id.substring(0, 8)}`)
+        .setHtml(
+            `<h1>Thanks for your order, ${buyerName}!</h1>
+            <p>Your order has been sent to the vendor for confirmation. We'll notify you once it's accepted.</p>
+            <h2>Order Summary</h2>
+            <p><strong>Order ID:</strong> ${order.id}</p>
+            <ul>
+                ${order.items.map(item => `<li>${item.title} (x${item.quantity}) - ₦${(item.price * item.quantity).toLocaleString()}</li>`).join('')}
+            </ul>
+            <p><strong>Subtotal:</strong> ₦${order.subtotal.toLocaleString()}</p>
+            <p><strong>Delivery Fee:</strong> ₦${order.deliveryFee.toLocaleString()}</p>
+            <p><strong>Service Charge:</strong> ₦${order.serviceCharge.toLocaleString()}</p>
+            <p><strong>Total:</strong> ₦${order.total.toLocaleString()}</p>
+            <p>You can view your order details in your dashboard.</p>`
+        );
+
+    try {
+        await mailerSend.email.send(emailParams);
+        console.log(`Buyer confirmation email sent to ${buyerEmail}`);
+    } catch (error) {
+        console.error("Error sending buyer email:", error);
+    }
+}
+
+
+export async function placeOrder(cart: CartItem[], user: { uid: string; displayName?: string | null; email?: string | null; university?: string; address?: string }, deliveryMethod: DeliveryMethod): Promise<ActionResponse> {
+  if (!user || !user.email) {
     return { success: false, error: 'Authentication required.' };
   }
 
@@ -82,7 +124,8 @@ export async function placeOrder(cart: CartItem[], user: { uid: string, displayN
   
   const subtotal = orderItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const deliveryFee = deliveryMethod === 'delivery' ? DELIVERY_FEE : 0;
-  const total = subtotal + deliveryFee;
+  const serviceCharge = subtotal * SERVICE_CHARGE_RATE;
+  const total = subtotal + deliveryFee + serviceCharge;
 
   const order: Order = {
     id: orderId,
@@ -91,7 +134,8 @@ export async function placeOrder(cart: CartItem[], user: { uid: string, displayN
     vendorId,
     items: orderItems,
     subtotal,
-    deliveryFee: deliveryFee,
+    deliveryFee,
+    serviceCharge,
     total,
     status: 'pending-confirmation',
     paymentStatus: 'pending',
@@ -109,8 +153,10 @@ export async function placeOrder(cart: CartItem[], user: { uid: string, displayN
     await setDoc(orderRef, order);
 
 
-    // After successfully placing the order, send a notification
+    // After successfully placing the order, send notifications
     await sendOrderNotification(vendorId, orderId, user.displayName ?? 'A customer');
+    await sendBuyerConfirmationEmail(user.email, user.displayName ?? 'Customer', order);
+
 
     revalidatePath('/dashboard');
     revalidatePath('/products');

@@ -144,13 +144,13 @@ const staticProducts: Omit<Product, 'vendorId' | 'vendorName' | 'category' | 'de
     "data_ai_hint": "traditional meal"
   },
   {
-    "id": "15",
-    "title": "Burger & Fries",
-    "price": 2200,
+    "id": "16",
+    "title": "Asus",
+    "price": 175000,
     "university": "University of Ibadan",
-    "imageUrl": "https://source.unsplash.com/400x300/?burger,fries",
+    "imageUrl": "https://unsplash.com/photos/black-and-silver-asus-laptop-computer-i5UV2HpITYA",
     "data_ai_hint": "fast food combo"
-  }
+  }, 
 ].map(p => ({
   ...p,
   // Fill in the missing properties to match the Product type

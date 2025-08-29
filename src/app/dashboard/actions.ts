@@ -3,7 +3,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/firebase';
-import { doc, getDoc, updateDoc, runTransaction, writeBatch } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, runTransaction, writeBatch, increment } from 'firebase/firestore';
 import type { Order } from '@/lib/types';
 import { getWallet, createTransaction } from '../wallet/actions';
 
@@ -28,13 +28,13 @@ export async function acceptOrder(orderId: string): Promise<{ success: boolean; 
             const walletDoc = await transaction.get(walletRef);
 
             if (!walletDoc.exists() || walletDoc.data().balance < order.total) {
-                throw new Error("Insufficient wallet balance. Please fund your wallet.");
+                throw new Error("Buyer has insufficient wallet balance.");
             }
     
             const newBalance = walletDoc.data().balance - order.total;
             transaction.update(walletRef, { balance: newBalance });
     
-            // Create a debit transaction record
+            // Create a debit transaction record for the buyer
             await createTransaction({
                 userId: order.buyerId,
                 type: 'debit',
@@ -44,7 +44,7 @@ export async function acceptOrder(orderId: string): Promise<{ success: boolean; 
                 relatedEntityId: order.id,
             }, transaction);
 
-            // Update product status to 'sold'
+            // Mark product as 'sold'
             order.items.forEach(item => {
                 const productRef = doc(db, 'products', item.productId);
                 transaction.update(productRef, { status: 'sold' });
@@ -163,7 +163,7 @@ export async function markAsDelivered(orderId: string): Promise<{ success: boole
             const vendorWalletRef = doc(db, 'wallets', order.vendorId);
             await getWallet(order.vendorId); // Ensure wallet exists
             
-            const vendorEarnings = order.subtotal;
+            const vendorEarnings = order.subtotal - order.serviceCharge;
 
             // 1. Credit vendor's wallet
             transaction.update(vendorWalletRef, { balance: increment(vendorEarnings) });

@@ -1,6 +1,7 @@
 
 
 export const DELIVERY_FEE = 500;
+export const SERVICE_CHARGE_RATE = 0.02; // 2%
 
 export type School = {
     name: string;
@@ -43,6 +44,7 @@ export type School = {
     items: OrderItem[];
     subtotal: number;
     deliveryFee: number;
+    serviceCharge: number;
     total: number;
     status: 'pending-confirmation' | 'pending' | 'ready-for-pickup' | 'processing' | 'out-for-delivery' | 'delivered' | 'cancelled' | 'rejected';
     paymentStatus: 'pending' | 'paid' | 'refunded';
@@ -93,7 +95,7 @@ export type WalletTransaction = {
     type: 'credit' | 'debit';
     amount: number;
     description: string;
-    relatedEntityType?: 'order' | 'funding';
+    relatedEntityType?: 'order' | 'funding' | 'service-charge';
     relatedEntityId?: string;
     createdAt: string;
 }

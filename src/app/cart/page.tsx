@@ -18,7 +18,7 @@ import { getWallet } from '../wallet/actions';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import type { DeliveryMethod } from '@/lib/types';
-import { DELIVERY_FEE } from '@/lib/types';
+import { DELIVERY_FEE, SERVICE_CHARGE_RATE } from '@/lib/types';
 
 
 export default function CartPage() {
@@ -51,7 +51,8 @@ export default function CartPage() {
 
   const subtotal = cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
   const deliveryFee = deliveryMethod === 'delivery' ? DELIVERY_FEE : 0;
-  const total = subtotal + deliveryFee;
+  const serviceCharge = subtotal * SERVICE_CHARGE_RATE;
+  const total = subtotal + deliveryFee + serviceCharge;
 
   useEffect(() => {
     if(user) {
@@ -82,6 +83,7 @@ export default function CartPage() {
         const fullUser = {
             uid: user.uid,
             displayName: user.displayName,
+            email: user.email,
             university: userDetails.school,
             address: userDetails.address
         }
@@ -177,11 +179,15 @@ export default function CartPage() {
                 <span>Subtotal</span>
                 <span>₦{new Intl.NumberFormat('en-NG').format(subtotal)}</span>
               </div>
+               <div className="flex justify-between text-sm">
+                <span>Service Charge ({(SERVICE_CHARGE_RATE * 100).toFixed(0)}%)</span>
+                <span>₦{new Intl.NumberFormat('en-NG').format(serviceCharge)}</span>
+              </div>
               <div className="flex justify-between">
                 <span>Delivery Fee</span>
                 <span>₦{new Intl.NumberFormat('en-NG').format(deliveryFee)}</span>
               </div>
-              <div className="flex justify-between font-bold text-lg">
+              <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2">
                 <span>Total</span>
                 <span>₦{new Intl.NumberFormat('en-NG').format(total)}</span>
               </div>

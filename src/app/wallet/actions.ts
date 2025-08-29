@@ -52,15 +52,12 @@ export async function fundWallet(userId: string, amount: number): Promise<FundWa
         return { success: false, error: "Invalid funding amount."};
     }
 
-    const walletRef = doc(db, 'wallets', userId);
-
     try {
-        const batch = writeBatch(db);
+        await getWallet(userId); // Ensure wallet exists before trying to update
+        
+        const walletRef = doc(db, 'wallets', userId);
 
-        // Ensure wallet exists before trying to update
-        await getWallet(userId); 
-
-        batch.update(walletRef, {
+        await updateDoc(walletRef, {
             balance: increment(amount),
             updatedAt: new Date().toISOString()
         });

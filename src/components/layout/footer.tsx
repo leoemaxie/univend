@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import { Logo } from '@/components/logo';
 
@@ -10,16 +11,16 @@ export default function Footer() {
             <Logo />
           </div>
           <nav className="flex gap-6 text-muted-foreground mb-4 md:mb-0">
-            <Link href="#" className="hover:text-primary transition-colors">
+            <Link href="#" className="hover:text-accent transition-colors">
               About
             </Link>
-            <Link href="#" className="hover:text-primary transition-colors">
+            <Link href="#" className="hover:text-accent transition-colors">
               Contact
             </Link>
-            <Link href="/superadmin" className="hover:text-primary transition-colors">
+            <Link href="/superadmin" className="hover:text-accent transition-colors">
               For Admins
             </Link>
-            <Link href="/vendor/add-product" className="hover:text-primary transition-colors">
+            <Link href="/vendor/add-product" className="hover:text-accent transition-colors">
               For Vendors
             </Link>
           </nav>

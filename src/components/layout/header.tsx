@@ -57,15 +57,18 @@ function SearchForm() {
     }
 
     return (
-        <form onSubmit={handleSubmit}>
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <form onSubmit={handleSubmit} className="w-full">
+          <div className="relative flex w-full max-w-sm items-center">
             <Input
               type="search"
               name="search"
               placeholder="Search products..."
-              className="w-full bg-muted pl-8 md:w-[200px] lg:w-[320px]"
+              className="w-full bg-muted pr-12 md:w-[200px] lg:w-[320px]"
             />
+            <Button type="submit" size="icon" className="absolute right-1 h-8 w-8 bg-accent text-accent-foreground hover:bg-accent/90">
+                <Search className="h-4 w-4" />
+                <span className="sr-only">Search</span>
+            </Button>
           </div>
         </form>
     );

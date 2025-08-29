@@ -4,12 +4,12 @@ import {
   generateProductDescription,
   type GenerateProductDescriptionInput,
 } from '@/ai/flows/generate-product-description';
-import { db, storage } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
+import { supabase } from '@/lib/supabase';
 import { z } from 'zod';
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { v4 as uuidv4 } from 'uuid';
 import { revalidatePath } from 'next/cache';
-import { setDoc, doc, getDoc } from 'firebase/firestore';
+import { setDoc, doc } from 'firebase/firestore';
 
 
 const ActionInputSchema = z.object({
@@ -68,7 +68,6 @@ export async function addProduct(formData: FormData): Promise<AddProductResponse
     const validationResult = AddProductSchema.safeParse(rawData);
 
     if (!validationResult.success) {
-        // A bit more descriptive error logging
         console.error("Add Product Validation Error:", validationResult.error.flatten());
         return { success: false, error: "Invalid product data provided." };
     }
@@ -77,14 +76,26 @@ export async function addProduct(formData: FormData): Promise<AddProductResponse
     
     try {
         const productId = uuidv4();
-        const imageRef = ref(storage, `products/${productId}/${image.name}`);
+        const imagePath = `products/${productId}/${image.name}`;
 
-        const imageBuffer = Buffer.from(await image.arrayBuffer());
-        await uploadBytes(imageRef, imageBuffer, {
-          contentType: image.type,
-        });
+        const { error: uploadError } = await supabase.storage
+          .from('products')
+          .upload(imagePath, image);
 
-        const imageUrl = await getDownloadURL(imageRef);
+        if (uploadError) {
+          throw new Error(`Supabase upload error: ${uploadError.message}`);
+        }
+        
+        const { data: publicUrlData } = supabase.storage
+            .from('products')
+            .getPublicUrl(imagePath);
+
+        if (!publicUrlData) {
+            throw new Error("Could not get public URL for the uploaded image.");
+        }
+        
+        const imageUrl = publicUrlData.publicUrl;
+
 
         await setDoc(doc(db, "products", productId), {
             id: productId,

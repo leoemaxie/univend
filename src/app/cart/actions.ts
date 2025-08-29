@@ -1,3 +1,4 @@
+
 'use server';
 
 import { messaging as adminMessaging, db as adminDb } from '@/lib/firebase-admin';
@@ -6,8 +7,10 @@ import type { Order, OrderItem, UserDetails } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/firebase';
-import { writeBatch, doc, getDoc } from 'firebase/firestore';
+import { writeBatch, doc, getDoc, runTransaction } from 'firebase/firestore';
+import { getWallet, createTransaction } from '@/app/wallet/actions';
 
+export const DELIVERY_FEE = 500;
 
 type ActionResponse = {
   success: boolean;
@@ -73,8 +76,7 @@ export async function placeOrder(cart: CartItem[], user: { uid: string, displayN
   }));
   
   const subtotal = orderItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const deliveryFee = 500; // Example fixed delivery fee
-  const total = subtotal + deliveryFee;
+  const total = subtotal + DELIVERY_FEE;
 
   const order: Order = {
     id: orderId,
@@ -82,37 +84,62 @@ export async function placeOrder(cart: CartItem[], user: { uid: string, displayN
     buyerName: user.displayName ?? 'Anonymous',
     vendorId,
     items: orderItems,
+    subtotal,
+    deliveryFee: DELIVERY_FEE,
     total,
     status: 'pending',
+    paymentStatus: 'pending',
     createdAt: new Date().toISOString(),
     university: user.university || '',
     deliveryAddress: user.address || 'No address provided',
   };
 
   try {
-    const batch = writeBatch(db);
+    await runTransaction(db, async (transaction) => {
+        const walletRef = doc(db, 'wallets', user.uid);
+        const walletDoc = await transaction.get(walletRef);
 
-    const orderRef = doc(db, 'orders', orderId);
-    batch.set(orderRef, order);
+        if (!walletDoc.exists() || walletDoc.data().balance < total) {
+            throw new Error("Insufficient wallet balance. Please fund your wallet.");
+        }
+
+        // 1. Debit buyer's wallet
+        const newBalance = walletDoc.data().balance - total;
+        transaction.update(walletRef, { balance: newBalance });
+
+        // 2. Create a debit transaction record
+        await createTransaction({
+            userId: user.uid,
+            type: 'debit',
+            amount: total,
+            description: `Payment for order ${orderId.substring(0, 8)}`,
+            relatedEntityType: 'order',
+            relatedEntityId: orderId,
+        }, transaction);
+
+        // 3. Create the order
+        const orderRef = doc(db, 'orders', orderId);
+        transaction.set(orderRef, { ...order, paymentStatus: 'paid' });
     
-    cart.forEach(item => {
-        const productRef = doc(db, 'products', item.product.id);
-        batch.update(productRef, { status: 'sold' });
+        // 4. Mark products as sold
+        cart.forEach(item => {
+            const productRef = doc(db, 'products', item.product.id);
+            transaction.update(productRef, { status: 'sold' });
+        });
     });
-
-    await batch.commit();
 
     // After successfully placing the order, send a notification
     await sendOrderNotification(vendorId, orderId, user.displayName ?? 'A customer');
 
     revalidatePath('/dashboard');
     revalidatePath('/products');
+    revalidatePath('/wallet');
     
     return { success: true, orderId: orderId };
 
   } catch (error) {
     console.error("Error placing order: ", error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-    return { success: false, error: `Failed to place order. ${errorMessage}` };
+    return { success: false, error: `${errorMessage}` };
   }
 }

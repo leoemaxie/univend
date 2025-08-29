@@ -35,8 +35,11 @@ export type School = {
     buyerName: string;
     vendorId: string;
     items: OrderItem[];
+    subtotal: number;
+    deliveryFee: number;
     total: number;
     status: 'pending' | 'processing' | 'out-for-delivery' | 'delivered' | 'cancelled';
+    paymentStatus: 'pending' | 'paid' | 'refunded';
     riderId?: string;
     createdAt: string;
     university: string;
@@ -76,6 +79,18 @@ export type Wallet = {
     balance: number;
     updatedAt: string;
 }
+
+export type WalletTransaction = {
+    id: string;
+    userId: string;
+    type: 'credit' | 'debit';
+    amount: number;
+    description: string;
+    relatedEntityType?: 'order' | 'funding';
+    relatedEntityId?: string;
+    createdAt: string;
+}
+
 
 export type Review = {
     id: string;

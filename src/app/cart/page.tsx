@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useCart } from '@/hooks/use-cart';
@@ -5,14 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
-import { MinusCircle, PlusCircle, Trash2, ShoppingCart } from 'lucide-react';
+import { MinusCircle, PlusCircle, Trash2, ShoppingCart, Wallet } from 'lucide-react';
 import Link from 'next/link';
-import { placeOrder } from './actions';
+import { placeOrder, DELIVERY_FEE } from './actions';
 import { useToast } from '@/hooks/use-toast';
-import { useTransition } from 'react';
+import { useTransition, useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/auth/provider';
 import { useRouter } from 'next/navigation';
+import { getWallet } from '../wallet/actions';
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, clearCart } = useCart();
@@ -20,13 +22,27 @@ export default function CartPage() {
   const [isPending, startTransition] = useTransition();
   const { user, userDetails } = useAuth();
   const router = useRouter();
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
 
-  const total = cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+  const subtotal = cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+  const total = subtotal + DELIVERY_FEE;
+
+  useEffect(() => {
+    if(user) {
+        getWallet(user.uid).then(wallet => setWalletBalance(wallet.balance));
+    }
+  }, [user]);
 
   const handleCheckout = () => {
     if(!user || !userDetails) {
         toast({ variant: 'destructive', title: "Authentication required", description: "Please sign in to place an order." });
         router.push('/signin?callbackUrl=/cart');
+        return;
+    }
+
+    if (walletBalance === null || walletBalance < total) {
+        toast({ variant: 'destructive', title: "Insufficient Funds", description: "Your wallet balance is too low. Please fund your wallet before placing an order." });
+        router.push('/wallet');
         return;
     }
 
@@ -104,21 +120,29 @@ export default function CartPage() {
             <CardContent className="space-y-4">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>₦{new Intl.NumberFormat('en-NG').format(total)}</span>
+                <span>₦{new Intl.NumberFormat('en-NG').format(subtotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Delivery Fee</span>
-                <span>₦{new Intl.NumberFormat('en-NG').format(500)}</span>
+                <span>₦{new Intl.NumberFormat('en-NG').format(DELIVERY_FEE)}</span>
               </div>
               <div className="flex justify-between font-bold text-lg">
                 <span>Total</span>
-                <span>₦{new Intl.NumberFormat('en-NG').format(total + 500)}</span>
+                <span>₦{new Intl.NumberFormat('en-NG').format(total)}</span>
               </div>
+               {walletBalance !== null && (
+                <div className="flex justify-between text-sm pt-2 border-t">
+                    <span className="text-muted-foreground flex items-center gap-2"><Wallet className="h-4 w-4" /> Your Balance</span>
+                    <span className={walletBalance < total ? 'text-destructive' : 'text-green-600'}>
+                        ₦{new Intl.NumberFormat('en-NG').format(walletBalance)}
+                    </span>
+                </div>
+               )}
             </CardContent>
             <CardFooter>
               <Button className="w-full" size="lg" onClick={handleCheckout} disabled={isPending}>
                 {isPending ? <Loader2 className="animate-spin mr-2" /> : null}
-                Proceed to Checkout
+                Pay with Wallet & Place Order
               </Button>
             </CardFooter>
           </Card>

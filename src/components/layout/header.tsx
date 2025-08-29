@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -66,6 +67,12 @@ export default function Header() {
     signOut();
     router.push('/');
   };
+  
+  const getUserSchoolName = () => {
+    if (!userDetails || !schools.length) return '';
+    const school = schools.find(s => s.domain === userDetails.school);
+    return school ? school.name : 'Unknown University';
+  };
 
 
   return (
@@ -123,10 +130,15 @@ export default function Header() {
             </form>
           </div>
           <div className="hidden md:flex items-center gap-4">
-            {loadingSchools ? (
+            {user && userDetails ? (
+                 <Button variant="outline" className="w-[200px] justify-start text-left font-normal">
+                    <School className="mr-2 h-4 w-4" />
+                    <span className='truncate'>{getUserSchoolName()}</span>
+                 </Button>
+            ) : loadingSchools ? (
               <Skeleton className="h-10 w-[200px]" />
             ) : (
-              <Select defaultValue={userDetails?.school || schools[0]?.domain}>
+              <Select defaultValue={schools[0]?.domain}>
                 <SelectTrigger className="w-[200px]">
                   <School className="mr-2 h-4 w-4" />
                   <SelectValue placeholder="Select University" />

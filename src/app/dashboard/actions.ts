@@ -1,3 +1,4 @@
+
 'use server';
 
 import { revalidatePath } from 'next/cache';
@@ -32,5 +33,32 @@ export async function acceptDelivery(orderId: string, riderId: string): Promise<
         console.error("Error accepting delivery:", error);
         const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
         return { success: false, error: `Failed to accept delivery. ${errorMessage}` };
+    }
+}
+
+
+export async function markAsPickedUp(orderId: string): Promise<{ success: boolean; error?: string }> {
+    try {
+        const orderRef = doc(db, 'orders', orderId);
+        await updateDoc(orderRef, { status: 'processing' });
+        revalidatePath('/dashboard');
+        return { success: true };
+    } catch (error) {
+        console.error("Error marking as picked up:", error);
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+        return { success: false, error: `Failed to update order status. ${errorMessage}` };
+    }
+}
+
+export async function markAsDelivered(orderId: string): Promise<{ success: boolean; error?: string }> {
+    try {
+        const orderRef = doc(db, 'orders', orderId);
+        await updateDoc(orderRef, { status: 'delivered' });
+        revalidatePath('/dashboard');
+        return { success: true };
+    } catch (error) {
+        console.error("Error marking as delivered:", error);
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+        return { success: false, error: `Failed to update order status. ${errorMessage}` };
     }
 }

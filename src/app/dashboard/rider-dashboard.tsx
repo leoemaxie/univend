@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import type { Order } from '@/lib/types';
@@ -12,7 +13,7 @@ import {
     TableHeader,
     TableRow,
   } from "@/components/ui/table"
-import { AcceptDeliveryButton } from './rider-actions';
+import { AcceptDeliveryButton, RiderActionButtons } from './rider-actions';
 import { Bike } from 'lucide-react';
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -128,6 +129,7 @@ export default function RiderDashboard({ userId, university }: { userId: string,
                             <TableHead>Customer</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead>Date</TableHead>
+                            <TableHead>Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -139,6 +141,9 @@ export default function RiderDashboard({ userId, university }: { userId: string,
                             <Badge>{order.status}</Badge>
                           </TableCell>
                           <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            <RiderActionButtons order={order} />
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

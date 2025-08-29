@@ -19,6 +19,11 @@ const UpdateProfileSchema = z.object({
   address: z.string().optional(),
   photo: z.instanceof(File).optional(),
   userId: z.string(),
+  // Vendor fields
+  companyName: z.string().optional(),
+  companyDescription: z.string().optional(),
+  companyCategory: z.string().optional(),
+  companyAddress: z.string().optional(),
 });
 
 type ActionResponse = {
@@ -31,10 +36,11 @@ export async function updateProfile(formData: FormData): Promise<ActionResponse>
   const validationResult = UpdateProfileSchema.safeParse(rawData);
 
   if (!validationResult.success) {
+    console.error("Profile validation error:", validationResult.error.flatten());
     return { success: false, error: "Invalid data provided." };
   }
 
-  const { userId, firstName, lastName, address, photo } = validationResult.data;
+  const { userId, firstName, lastName, address, photo, ...vendorData } = validationResult.data;
 
   try {
     const userRef = doc(db, "users", userId);
@@ -46,7 +52,7 @@ export async function updateProfile(formData: FormData): Promise<ActionResponse>
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(imagePath, photo);
+        .upload(imagePath, photo, { upsert: true });
 
       if (uploadError) {
         throw new Error(`Supabase upload error: ${uploadError.message}`);
@@ -70,7 +76,6 @@ export async function updateProfile(formData: FormData): Promise<ActionResponse>
 
     const userInAuth = auth.currentUser;
     if (!userInAuth || userInAuth.uid !== userId) {
-        // This should not happen if the client-side checks are correct
         return { success: false, error: "Authentication mismatch." };
     }
 
@@ -79,15 +84,21 @@ export async function updateProfile(formData: FormData): Promise<ActionResponse>
       displayName: fullName,
       ...(photoURL && { photoURL }),
     });
-
-    // Update Firestore user document
-    await updateDoc(userRef, {
+    
+    const updates: Record<string, any> = {
         firstName: transformedFirstName,
         lastName: transformedLastName,
         fullName,
         address: address || '',
         ...(photoURL && { photoURL }),
-    });
+        companyName: vendorData.companyName || '',
+        companyDescription: vendorData.companyDescription || '',
+        companyCategory: vendorData.companyCategory || '',
+        companyAddress: vendorData.companyAddress || '',
+    };
+
+    // Update Firestore user document
+    await updateDoc(userRef, updates);
 
     revalidatePath('/profile');
     revalidatePath('/dashboard');

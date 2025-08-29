@@ -62,7 +62,12 @@ export type School = {
     role: 'buyer' | 'vendor' | 'rider' | 'superadminx';
     createdAt: string;
     photoURL?: string;
-    address?: string;
+    address?: string; // Personal delivery address
+    // Vendor-specific fields
+    companyName?: string;
+    companyDescription?: string;
+    companyCategory?: string;
+    companyAddress?: string;
 }
   
 export type Wallet = {

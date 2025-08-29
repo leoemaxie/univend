@@ -20,6 +20,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useCart } from '@/hooks/use-cart';
 import { useSearchParams } from 'next/navigation';
 import { getSchools } from '@/lib/schools';
+import { Input } from '@/components/ui/input';
 import {
     Select,
     SelectContent,

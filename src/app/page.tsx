@@ -76,7 +76,7 @@ const staticProducts: Omit<Product, 'vendorId' | 'vendorName' | 'category' | 'de
     "title": "Ankara Dress",
     "price": 15000,
     "university": "University of Ibadan",
-    "imageUrl": "https://source.unsplash.com/400x300/?ankara,fashion",
+    "imageUrl": "https://source.unsplash.com/400x300/?ankara,dress",
     "data-ai-hint": "student fashion"
   },
   {
@@ -148,7 +148,7 @@ const staticProducts: Omit<Product, 'vendorId' | 'vendorName' | 'category' | 'de
     "title": "Asus",
     "price": 175000,
     "university": "University of Ibadan",
-    "imageUrl": "https://unsplash.com/photos/black-and-silver-asus-laptop-computer-i5UV2HpITYA",
+    "imageUrl": "https://source.unsplash.com/400x300/?laptop,asus",
     "data_ai_hint": "fast food combo"
   }, 
 ].map(p => ({

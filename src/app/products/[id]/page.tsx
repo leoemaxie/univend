@@ -7,7 +7,7 @@ import type { Product, Review } from '@/lib/types';
 import React, { useEffect, useState, useTransition } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Loader2, PlusCircle, UserCircle, Star, Send } from 'lucide-react';
+import { Loader2, PlusCircle, UserCircle, Star, Send, MessageSquare } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCart } from '@/hooks/use-cart';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +17,10 @@ import { useAuth } from '@/auth/provider';
 import { Textarea } from '@/components/ui/textarea';
 import { submitReview } from './actions';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
+import { getOrCreateChat } from '@/app/chat/actions';
+import Link from 'next/link';
+
 
 type ProductPageProps = {
   params: {
@@ -29,6 +33,10 @@ export default function ProductPage({ params }: ProductPageProps) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
+  const { user } = useAuth();
+  const router = useRouter();
+  const [isCreatingChat, startCreatingChat] = useTransition();
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchProductAndReviews = async () => {
@@ -52,6 +60,27 @@ export default function ProductPage({ params }: ProductPageProps) {
 
     fetchProductAndReviews();
   }, [params.id]);
+
+
+  const handleChatWithVendor = () => {
+    if (!user) {
+        router.push(`/signin?callbackUrl=/products/${params.id}`);
+        return;
+    }
+    if (user.uid === product?.vendorId) {
+        toast({ variant: 'destructive', title: "This is your product", description: "You cannot start a chat with yourself."});
+        return;
+    }
+
+    startCreatingChat(async () => {
+        const result = await getOrCreateChat(params.id, user.uid);
+        if(result.success && result.data) {
+            router.push(`/chat/${result.data.chatId}`);
+        } else {
+            toast({ variant: 'destructive', title: 'Error', description: result.error });
+        }
+    });
+  }
 
   if (loading) {
     return <ProductSkeleton />;
@@ -94,9 +123,17 @@ export default function ProductPage({ params }: ProductPageProps) {
             {product.description}
           </p>
 
-          <Button size="lg" onClick={() => addToCart(product)}>
-            <PlusCircle className="mr-2" /> Add to Cart
-          </Button>
+          <div className='flex gap-2'>
+            <Button size="lg" onClick={() => addToCart(product)} className='flex-1'>
+                <PlusCircle className="mr-2" /> Add to Cart
+            </Button>
+            {user?.uid !== product.vendorId && (
+              <Button size="lg" variant="outline" onClick={handleChatWithVendor} disabled={isCreatingChat}>
+                  {isCreatingChat ? <Loader2 className="mr-2 animate-spin" /> : <MessageSquare className="mr-2" />}
+                  Chat with Vendor
+              </Button>
+            )}
+          </div>
         </div>
       </div>
       <ReviewsSection productId={product.id} reviews={reviews} />
@@ -242,7 +279,10 @@ function ProductSkeleton() {
           <Skeleton className="h-5 w-1/3" />
           <Skeleton className="h-12 w-1/4 mt-4" />
           <Skeleton className="h-24 w-full mt-4" />
-          <Skeleton className="h-12 w-full mt-auto" />
+          <div className='flex gap-2 mt-auto'>
+            <Skeleton className="h-12 flex-1" />
+            <Skeleton className="h-12 w-1/3" />
+          </div>
         </div>
       </div>
     </div>

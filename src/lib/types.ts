@@ -87,3 +87,32 @@ export type Review = {
     comment: string;
     createdAt: string;
 };
+
+// Chat and Message Types
+export type Message = {
+    senderId: string;
+    text: string;
+    createdAt: string;
+};
+
+export type ChatParticipant = {
+    name: string;
+    avatar: string;
+};
+
+export type Chat = {
+    id: string;
+    productId: string;
+    productTitle: string;
+    productImageUrl: string;
+    participantIds: string[];
+    participants: {
+        [key: string]: ChatParticipant;
+    };
+    createdAt: string;
+    lastMessage: {
+        text: string;
+        senderId: string;
+        createdAt: string;
+    } | null;
+};

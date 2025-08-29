@@ -14,6 +14,7 @@ import {
   DollarSign,
   LogIn,
   ShoppingCart,
+  MessageSquare,
 } from 'lucide-react';
 
 import {
@@ -137,6 +138,12 @@ export default function Header() {
                 >
                   Wallet
                 </Link>
+                 <Link
+                  href="/chat"
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  Chat
+                </Link>
               </nav>
             </SheetContent>
           </Sheet>
@@ -179,6 +186,14 @@ export default function Header() {
                     <span className="sr-only">Cart</span>
                 </Link>
             </Button>
+            { user && 
+                 <Button asChild variant="ghost" size="icon">
+                    <Link href="/chat">
+                        <MessageSquare />
+                        <span className="sr-only">Chat</span>
+                    </Link>
+                </Button>
+            }
           <ThemeToggle />
           {user && userDetails ? (
             <DropdownMenu>
@@ -228,6 +243,12 @@ export default function Header() {
                     <Link href="/profile">
                       <User className="mr-2 h-4 w-4" />
                       <span>Profile</span>
+                    </Link>
+                  </DropdownMenuItem>
+                   <DropdownMenuItem asChild>
+                    <Link href="/chat">
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      <span>Chat</span>
                     </Link>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>

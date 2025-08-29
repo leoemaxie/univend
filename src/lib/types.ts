@@ -1,9 +1,12 @@
 
+
 export type School = {
     name: string;
     type: string;
     domain: string;
   };
+
+  export type DeliveryMethod = 'delivery' | 'pickup';
   
   export type Product = {
       id: string;
@@ -19,6 +22,7 @@ export type School = {
       status: 'available' | 'sold';
       reviewCount: number;
       averageRating: number;
+      deliveryMethods: DeliveryMethod[];
   };
   
   export type OrderItem = {
@@ -38,12 +42,13 @@ export type School = {
     subtotal: number;
     deliveryFee: number;
     total: number;
-    status: 'pending' | 'processing' | 'out-for-delivery' | 'delivered' | 'cancelled';
+    status: 'pending-confirmation' | 'pending' | 'ready-for-pickup' | 'processing' | 'out-for-delivery' | 'delivered' | 'cancelled' | 'rejected';
     paymentStatus: 'pending' | 'paid' | 'refunded';
     riderId?: string;
     createdAt: string;
     university: string;
     deliveryAddress?: string;
+    deliveryMethod: DeliveryMethod;
   };
   
   export type Delivery = {

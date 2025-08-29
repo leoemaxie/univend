@@ -3,7 +3,7 @@
 
 import { messaging as adminMessaging, db as adminDb } from '@/lib/firebase-admin';
 import type { CartItem } from '@/hooks/use-cart';
-import type { Order, OrderItem, UserDetails } from '@/lib/types';
+import type { Order, OrderItem, UserDetails, DeliveryMethod } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/firebase';
@@ -34,8 +34,8 @@ async function sendOrderNotification(vendorId: string, orderId: string, buyerNam
         if (fcmToken) {
             const message = {
                 notification: {
-                    title: 'New Order Received!',
-                    body: `${buyerName} has placed an order. Order ID: ${orderId.substring(0,8)}...`
+                    title: 'New Order for Confirmation!',
+                    body: `${buyerName} has placed an order. Please confirm it in your dashboard. ID: ${orderId.substring(0,8)}...`
                 },
                 token: fcmToken,
             };
@@ -51,7 +51,7 @@ async function sendOrderNotification(vendorId: string, orderId: string, buyerNam
     }
 }
 
-export async function placeOrder(cart: CartItem[], user: { uid: string, displayName?: string | null, university?: string, address?: string }): Promise<ActionResponse> {
+export async function placeOrder(cart: CartItem[], user: { uid: string, displayName?: string | null, university?: string, address?: string }, deliveryMethod: DeliveryMethod): Promise<ActionResponse> {
   if (!user) {
     return { success: false, error: 'Authentication required.' };
   }
@@ -67,6 +67,13 @@ export async function placeOrder(cart: CartItem[], user: { uid: string, displayN
     return { success: false, error: 'Product vendor information is missing.' };
   }
 
+  // Verify all products in the cart support the chosen delivery method
+  const allSupportMethod = cart.every(item => item.product.deliveryMethods?.includes(deliveryMethod));
+  if (!allSupportMethod) {
+    return { success: false, error: 'One or more items in your cart do not support the selected delivery method.' };
+  }
+
+
   const orderItems: OrderItem[] = cart.map(item => ({
     productId: item.product.id,
     title: item.product.title,
@@ -76,7 +83,8 @@ export async function placeOrder(cart: CartItem[], user: { uid: string, displayN
   }));
   
   const subtotal = orderItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const total = subtotal + DELIVERY_FEE;
+  const deliveryFee = deliveryMethod === 'delivery' ? DELIVERY_FEE : 0;
+  const total = subtotal + deliveryFee;
 
   const order: Order = {
     id: orderId,
@@ -85,55 +93,25 @@ export async function placeOrder(cart: CartItem[], user: { uid: string, displayN
     vendorId,
     items: orderItems,
     subtotal,
-    deliveryFee: DELIVERY_FEE,
+    deliveryFee: deliveryFee,
     total,
-    status: 'pending',
+    status: 'pending-confirmation',
     paymentStatus: 'pending',
     createdAt: new Date().toISOString(),
     university: user.university || '',
     deliveryAddress: user.address || 'No address provided',
+    deliveryMethod: deliveryMethod,
   };
 
   try {
-    await runTransaction(db, async (transaction) => {
-        const walletRef = doc(db, 'wallets', user.uid);
-        const walletDoc = await transaction.get(walletRef);
-
-        if (!walletDoc.exists() || walletDoc.data().balance < total) {
-            throw new Error("Insufficient wallet balance. Please fund your wallet.");
-        }
-
-        // 1. Debit buyer's wallet
-        const newBalance = walletDoc.data().balance - total;
-        transaction.update(walletRef, { balance: newBalance });
-
-        // 2. Create a debit transaction record
-        await createTransaction({
-            userId: user.uid,
-            type: 'debit',
-            amount: total,
-            description: `Payment for order ${orderId.substring(0, 8)}`,
-            relatedEntityType: 'order',
-            relatedEntityId: orderId,
-        }, transaction);
-
-        // 3. Create the order
-        const orderRef = doc(db, 'orders', orderId);
-        transaction.set(orderRef, { ...order, paymentStatus: 'paid' });
-    
-        // 4. Mark products as sold
-        cart.forEach(item => {
-            const productRef = doc(db, 'products', item.product.id);
-            transaction.update(productRef, { status: 'sold' });
-        });
-    });
+    const orderRef = doc(db, 'orders', orderId);
+    await setDoc(orderRef, order);
 
     // After successfully placing the order, send a notification
     await sendOrderNotification(vendorId, orderId, user.displayName ?? 'A customer');
 
     revalidatePath('/dashboard');
     revalidatePath('/products');
-    revalidatePath('/wallet');
     
     return { success: true, orderId: orderId };
 

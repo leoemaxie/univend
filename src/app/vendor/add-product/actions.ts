@@ -61,6 +61,11 @@ const AddProductSchema = z.object({
     userId: z.string(),
     userName: z.string(),
     userSchool: z.string(),
+    delivery: z.string().optional(),
+    pickup: z.string().optional(),
+}).refine(data => data.delivery || data.pickup, {
+    message: "At least one delivery method must be selected.",
+    path: ["delivery"], // path to show error on
 });
 
 type AddProductResponse = {
@@ -75,10 +80,16 @@ export async function addProduct(formData: FormData): Promise<AddProductResponse
 
     if (!validationResult.success) {
         console.error("Add Product Validation Error:", validationResult.error.flatten());
-        return { success: false, error: "Invalid product data provided." };
+        const firstError = validationResult.error.flatten().fieldErrors;
+        const errorMessage = Object.values(firstError)[0]?.[0] || "Invalid product data provided.";
+        return { success: false, error: errorMessage };
     }
     
-    const { productTitle, productCategory, productDescription, price, image, userId, userName, userSchool } = validationResult.data;
+    const { productTitle, productCategory, productDescription, price, image, userId, userName, userSchool, delivery, pickup } = validationResult.data;
+    
+    const deliveryMethods = [];
+    if (delivery) deliveryMethods.push('delivery');
+    if (pickup) deliveryMethods.push('pickup');
     
     try {
         const productId = uuidv4();
@@ -119,6 +130,7 @@ export async function addProduct(formData: FormData): Promise<AddProductResponse
             status: 'available',
             reviewCount: 0,
             averageRating: 0,
+            deliveryMethods,
         });
 
         revalidatePath('/dashboard');

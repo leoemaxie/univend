@@ -35,7 +35,7 @@ const staticProducts: Omit<Product, 'vendorId' | 'vendorName' | 'category' | 'de
     "id": "1",
     "title": "Advanced Engineering Mathematics",
     "price": 15000,
-    "university": "University of Lagos",
+    "university": "University of Ibadan",
     "imageUrl": "https://source.unsplash.com/400x300/?math,book",
     "data-ai-hint": "textbook math"
   },
@@ -43,7 +43,7 @@ const staticProducts: Omit<Product, 'vendorId' | 'vendorName' | 'category' | 'de
     "id": "2",
     "title": "Principles of Economics",
     "price": 12000,
-    "university": "Obafemi Awolowo University",
+    "university": "University of Ibadan",
     "imageUrl": "https://source.unsplash.com/400x300/?economics,book",
     "data-ai-hint": "economics textbook"
   },
@@ -59,7 +59,7 @@ const staticProducts: Omit<Product, 'vendorId' | 'vendorName' | 'category' | 'de
     "id": "4",
     "title": "Laptop Backpack",
     "price": 9000,
-    "university": "Ahmadu Bello University",
+    "university": "University of Ibadan",
     "imageUrl": "https://source.unsplash.com/400x300/?backpack,student",
     "data-ai-hint": "bag for students"
   },
@@ -67,7 +67,7 @@ const staticProducts: Omit<Product, 'vendorId' | 'vendorName' | 'category' | 'de
     "id": "5",
     "title": "Sneakers (White)",
     "price": 11000,
-    "university": "University of Benin",
+    "university": "University of Ibadan",
     "imageUrl": "https://source.unsplash.com/400x300/?sneakers,shoes",
     "data-ai-hint": "casual student shoes"
   },
@@ -75,7 +75,7 @@ const staticProducts: Omit<Product, 'vendorId' | 'vendorName' | 'category' | 'de
     "id": "6",
     "title": "Ankara Dress",
     "price": 15000,
-    "university": "University of Port Harcourt",
+    "university": "University of Ibadan",
     "imageUrl": "https://source.unsplash.com/400x300/?ankara,fashion",
     "data-ai-hint": "student fashion"
   },
@@ -83,7 +83,7 @@ const staticProducts: Omit<Product, 'vendorId' | 'vendorName' | 'category' | 'de
     "id": "7",
     "title": "Plain White T-Shirt",
     "price": 3500,
-    "university": "Lagos State University",
+    "university": "University of Ibadan",
     "imageUrl": "https://source.unsplash.com/400x300/?tshirt,white",
     "data-ai-hint": "basic student wear"
   },
@@ -91,7 +91,7 @@ const staticProducts: Omit<Product, 'vendorId' | 'vendorName' | 'category' | 'de
     "id": "8",
     "title": "Denim Jacket",
     "price": 10000,
-    "university": "Covenant University",
+    "university": "University of Ibadan",
     "imageUrl": "https://source.unsplash.com/400x300/?denim,jacket",
     "data-ai-hint": "fashion jacket"
   },
@@ -99,7 +99,7 @@ const staticProducts: Omit<Product, 'vendorId' | 'vendorName' | 'category' | 'de
     "id": "9",
     "title": "Jollof Rice & Chicken Pack",
     "price": 2500,
-    "university": "University of Lagos",
+    "university": "University of Ibadan",
     "imageUrl": "https://source.unsplash.com/400x300/?jollof,rice",
     "data-ai-hint": "food delivery"
   },
@@ -107,7 +107,7 @@ const staticProducts: Omit<Product, 'vendorId' | 'vendorName' | 'category' | 'de
     "id": "10",
     "title": "Shawarma (Large)",
     "price": 2000,
-    "university": "Obafemi Awolowo University",
+    "university": "University of Ibadan",
     "imageUrl": "https://source.unsplash.com/400x300/?shawarma,food",
     "data-ai-hint": "fast food"
   },
@@ -123,7 +123,7 @@ const staticProducts: Omit<Product, 'vendorId' | 'vendorName' | 'category' | 'de
     "id": "12",
     "title": "Fruit Smoothie",
     "price": 1200,
-    "university": "Ahmadu Bello University",
+    "university": "University of Ibadan",
     "imageUrl": "https://source.unsplash.com/400x300/?smoothie,fruit",
     "data-ai-hint": "healthy drink"
   },
@@ -131,7 +131,7 @@ const staticProducts: Omit<Product, 'vendorId' | 'vendorName' | 'category' | 'de
     "id": "13",
     "title": "Suya (Beef Skewers)",
     "price": 1800,
-    "university": "University of Benin",
+    "university": "University of Ibadan",
     "imageUrl": "https://source.unsplash.com/400x300/?suya,grill",
     "data-ai-hint": "popular student food"
   },
@@ -139,7 +139,7 @@ const staticProducts: Omit<Product, 'vendorId' | 'vendorName' | 'category' | 'de
     "id": "14",
     "title": "Pounded Yam with Egusi Soup",
     "price": 3000,
-    "university": "University of Port Harcourt",
+    "university": "University of Ibadan",
     "imageUrl": "https://source.unsplash.com/400x300/?egusi,food",
     "data_ai_hint": "traditional meal"
   },
@@ -147,7 +147,7 @@ const staticProducts: Omit<Product, 'vendorId' | 'vendorName' | 'category' | 'de
     "id": "15",
     "title": "Burger & Fries",
     "price": 2200,
-    "university": "Covenant University",
+    "university": "University of Ibadan",
     "imageUrl": "https://source.unsplash.com/400x300/?burger,fries",
     "data_ai_hint": "fast food combo"
   }

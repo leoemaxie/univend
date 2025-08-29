@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle, Package } from 'lucide-react';
+import { PlusCircle, Package, Truck, Hand } from 'lucide-react';
 import {
     Table,
     TableBody,
@@ -20,6 +20,7 @@ import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { VendorOrderActions } from './vendor-actions';
 
 async function getVendorData(vendorId: string) {
   const productsQuery = query(collection(db, 'products'), where('vendorId', '==', vendorId), orderBy('createdAt', 'desc'));
@@ -122,8 +123,10 @@ export default function VendorDashboard({ userId }: { userId: string }) {
                         <TableHead>Order ID</TableHead>
                         <TableHead>Customer</TableHead>
                         <TableHead>Total</TableHead>
+                        <TableHead>Delivery</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Date</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -132,10 +135,16 @@ export default function VendorDashboard({ userId }: { userId: string }) {
                           <TableCell className="font-mono text-xs">{order.id.substring(0, 8)}...</TableCell>
                           <TableCell>{order.buyerName}</TableCell>
                           <TableCell>₦{new Intl.NumberFormat('en-NG').format(order.total)}</TableCell>
+                          <TableCell className='capitalize'>
+                            {order.deliveryMethod === 'delivery' ? <Truck className="h-4 w-4" /> : <Hand className="h-4 w-4" />}
+                          </TableCell>
                           <TableCell>
                             <Badge>{order.status}</Badge>
                           </TableCell>
                           <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            {order.status === 'pending-confirmation' && <VendorOrderActions orderId={order.id} />}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

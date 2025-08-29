@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -30,6 +31,7 @@ import { handleGenerateDescription, addProduct } from './actions';
 import Image from 'next/image';
 import { useAuth } from '@/auth/provider';
 import { useRouter } from 'next/navigation';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const formSchema = z.object({
   productTitle: z.string().min(5, {
@@ -43,6 +45,11 @@ const formSchema = z.object({
   }),
   price: z.coerce.number().positive({ message: 'Price must be a positive number.' }),
   image: z.instanceof(File).refine(file => file.size > 0, "Please upload an image."),
+  delivery: z.boolean().default(false),
+  pickup: z.boolean().default(false),
+}).refine(data => data.delivery || data.pickup, {
+    message: "Please select at least one delivery method.",
+    path: ["delivery"], // show the error on the first checkbox
 });
 
 export default function AddProductPage() {
@@ -59,6 +66,8 @@ export default function AddProductPage() {
     defaultValues: {
       productTitle: '',
       productDescription: '',
+      delivery: true,
+      pickup: false,
     },
   });
 
@@ -70,9 +79,14 @@ export default function AddProductPage() {
 
     startSubmitting(async () => {
         const formData = new FormData();
-        Object.entries(values).forEach(([key, value]) => {
-            formData.append(key, value);
-        });
+        // Append all form values
+        formData.append('productTitle', values.productTitle);
+        formData.append('productCategory', values.productCategory);
+        formData.append('productDescription', values.productDescription);
+        formData.append('price', String(values.price));
+        formData.append('image', values.image);
+        if (values.delivery) formData.append('delivery', 'on');
+        if (values.pickup) formData.append('pickup', 'on');
 
         // Append user details to formData
         formData.append('userId', user.uid);
@@ -167,7 +181,7 @@ export default function AddProductPage() {
                 <FormField
                   control={form.control}
                   name="image"
-                  render={({ field }) => (
+                  render={() => (
                     <FormItem>
                       <FormLabel>Product Image</FormLabel>
                       <FormControl>
@@ -256,6 +270,57 @@ export default function AddProductPage() {
                   </FormItem>
                 )}
               />
+               <div>
+                    <FormLabel>Available Delivery Methods</FormLabel>
+                    <FormDescription>How can customers receive this item?</FormDescription>
+                    <div className="space-y-2 mt-2">
+                        <FormField
+                            control={form.control}
+                            name="delivery"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                                <FormControl>
+                                    <Checkbox
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                    <FormLabel>
+                                    Rider Delivery
+                                    </FormLabel>
+                                    <FormDescription>
+                                    A rider will deliver this item to the customer.
+                                    </FormDescription>
+                                </div>
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="pickup"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                                <FormControl>
+                                    <Checkbox
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                    <FormLabel>
+                                    Self Pickup
+                                    </FormLabel>
+                                    <FormDescription>
+                                        Customer will come to a designated location to pick up the item.
+                                    </FormDescription>
+                                </div>
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                     <FormMessage>{form.formState.errors.delivery?.message}</FormMessage>
+                </div>
               <FormField
                 control={form.control}
                 name="price"

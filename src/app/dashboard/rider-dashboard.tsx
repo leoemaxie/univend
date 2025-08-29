@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Order } from '@/lib/types';
@@ -60,15 +61,15 @@ export default function RiderDashboard({ userId, university }: { userId: string,
     }, [userId, university]);
 
   return (
-    <div className="space-y-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Available Deliveries</CardTitle>
+    <div className="space-y-8 p-6">
+      <Card className='overflow-hidden'>
+        <CardHeader className="bg-muted/30">
+          <CardTitle className="text-xl font-headline">Available Deliveries</CardTitle>
           <CardDescription>Pick up a delivery job in your university.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
             {loading ? (
-                <div className='space-y-2'>
+                <div className='space-y-px p-6'>
                     <Skeleton className='h-10 w-full' />
                     <Skeleton className='h-10 w-full' />
                     <Skeleton className='h-10 w-full' />
@@ -99,7 +100,7 @@ export default function RiderDashboard({ userId, university }: { userId: string,
                     </TableBody>
                 </Table>
             ) : (
-                <div className="text-center py-10 border-2 border-dashed rounded-lg">
+                <div className="text-center py-10">
                     <Bike className="mx-auto h-12 w-12 text-muted-foreground" />
                     <h3 className="mt-2 text-sm font-semibold">No available deliveries</h3>
                     <p className="mt-1 text-sm text-muted-foreground">Check back later for new delivery jobs.</p>
@@ -108,14 +109,14 @@ export default function RiderDashboard({ userId, university }: { userId: string,
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>My Delivery History</CardTitle>
+      <Card className='overflow-hidden'>
+        <CardHeader className="bg-muted/30">
+          <CardTitle className="text-xl font-headline">My Delivery History</CardTitle>
           <CardDescription>Keep track of your completed and ongoing deliveries.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
         {loading ? (
-             <div className='space-y-2'>
+             <div className='space-y-px p-6'>
                 <Skeleton className='h-10 w-full' />
                 <Skeleton className='h-10 w-full' />
             </div>
@@ -143,7 +144,7 @@ export default function RiderDashboard({ userId, university }: { userId: string,
                     </TableBody>
                 </Table>
             ) : (
-                <div className="text-center py-10 border-2 border-dashed rounded-lg">
+                <div className="text-center py-10">
                     <h3 className="text-sm font-semibold">You haven't accepted any deliveries yet.</h3>
                     <p className="mt-1 text-sm text-muted-foreground">Accept a job from the list above to get started.</p>
                 </div>

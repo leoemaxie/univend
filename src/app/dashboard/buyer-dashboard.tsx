@@ -1,3 +1,4 @@
+
 'use client';
 
 import { db } from '@/lib/firebase';
@@ -51,9 +52,9 @@ export default function BuyerDashboard({ userId }: { userId: string }) {
 
 
   return (
-    <Card>
+    <div>
       <CardHeader>
-        <CardTitle>My Order History</CardTitle>
+        <CardTitle className="text-2xl font-headline">My Purchase History</CardTitle>
         <CardDescription>View the details and status of all your past orders.</CardDescription>
       </CardHeader>
       <CardContent>
@@ -103,12 +104,12 @@ export default function BuyerDashboard({ userId }: { userId: string }) {
             ))}
             </Accordion>
         ) : (
-          <div className="text-center py-10 border-2 border-dashed rounded-lg">
+          <div className="text-center py-10 border-2 border-dashed rounded-lg m-6">
             <h3 className="text-sm font-semibold">You haven't placed any orders yet.</h3>
             <p className="mt-1 text-sm text-muted-foreground">Start shopping to see your orders here.</p>
           </div>
         )}
       </CardContent>
-    </Card>
+    </div>
   );
 }

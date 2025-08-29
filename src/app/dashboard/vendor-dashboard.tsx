@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Product, Order } from '@/lib/types';
@@ -49,20 +50,20 @@ export default function VendorDashboard({ userId }: { userId: string }) {
   }, [userId]);
 
   return (
-    <div className="space-y-8">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+    <div className="space-y-8 p-6">
+      <Card className='overflow-hidden'>
+        <CardHeader className="flex flex-row items-center justify-between bg-muted/30">
             <div>
-                <CardTitle>Your Products</CardTitle>
+                <CardTitle className="text-xl font-headline">Your Products</CardTitle>
                 <CardDescription>Manage your product listings.</CardDescription>
             </div>
           <Button asChild>
             <Link href="/vendor/add-product"><PlusCircle className="mr-2"/> Add New Product</Link>
           </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
             {loading ? (
-                <div className='space-y-2'>
+                <div className='space-y-px p-6'>
                     <Skeleton className='h-10 w-full' />
                     <Skeleton className='h-10 w-full' />
                 </div>
@@ -94,23 +95,23 @@ export default function VendorDashboard({ userId }: { userId: string }) {
                     </TableBody>
                   </Table>
             ) : (
-                <div className="text-center py-10 border-2 border-dashed rounded-lg">
+                <div className="text-center py-10">
                     <Package className="mx-auto h-12 w-12 text-muted-foreground" />
-                    <h3 className="mt-2 text-sm font-semibold text-gray-900">No products yet</h3>
-                    <p className="mt-1 text-sm text-gray-500">Get started by adding your first product.</p>
+                    <h3 className="mt-2 text-sm font-semibold">No products yet</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">Get started by adding your first product.</p>
                 </div>
             )}
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Received Orders</CardTitle>
+      <Card className="overflow-hidden">
+        <CardHeader className="bg-muted/30">
+          <CardTitle className="text-xl font-headline">Received Orders</CardTitle>
           <CardDescription>Keep track of orders for your products.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
         {loading ? (
-             <div className='space-y-2'>
+             <div className='space-y-px p-6'>
                 <Skeleton className='h-10 w-full' />
                 <Skeleton className='h-10 w-full' />
             </div>
@@ -140,9 +141,9 @@ export default function VendorDashboard({ userId }: { userId: string }) {
                     </TableBody>
                   </Table>
             ) : (
-                <div className="text-center py-10 border-2 border-dashed rounded-lg">
+                <div className="text-center py-10">
                     <h3 className="text-sm font-semibold">No orders received yet</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">New orders will appear here.</p>
+                    <p className="mt-1 text-sm text-muted-foreground">New orders for your products will appear here.</p>
                 </div>
             )}
         </CardContent>

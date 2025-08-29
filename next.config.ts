@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -8,9 +9,7 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  experimental: {
-    serverComponentsExternalPackages: ['google-auth-library', 'firebase-admin'],
-  },
+  serverExternalPackages: ['google-auth-library', 'firebase-admin'],
   images: {
     remotePatterns: [
       {

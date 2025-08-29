@@ -16,6 +16,9 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { collection, getDocs, limit, orderBy, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import type { Product } from '@/lib/types';
 
 const categories = [
   { name: 'Books', icon: BookOpen },
@@ -24,131 +27,26 @@ const categories = [
   { name: 'Fashion', icon: Shirt },
 ];
 
-const products =  [
-  {
-    "id": 1,
-    "name": "Advanced Engineering Mathematics",
-    "price": "15000",
-    "university": "University of Lagos",
-    "image": "https://source.unsplash.com/400x300/?math,book",
-    "hint": "textbook math"
-  },
-  {
-    "id": 2,
-    "name": "Principles of Economics",
-    "price": "12000",
-    "university": "Obafemi Awolowo University",
-    "image": "https://source.unsplash.com/400x300/?economics,book",
-    "hint": "economics textbook"
-  },
-  {
-    "id": 3,
-    "name": "Organic Chemistry Notes",
-    "price": "8000",
-    "university": "University of Ibadan",
-    "image": "https://source.unsplash.com/400x300/?chemistry,book",
-    "hint": "chemistry textbook"
-  },
-  {
-    "id": 4,
-    "name": "Laptop Backpack",
-    "price": "9000",
-    "university": "Ahmadu Bello University",
-    "image": "https://source.unsplash.com/400x300/?backpack,student",
-    "hint": "bag for students"
-  },
-  {
-    "id": 5,
-    "name": "Sneakers (White)",
-    "price": "11000",
-    "university": "University of Benin",
-    "image": "https://source.unsplash.com/400x300/?sneakers,shoes",
-    "hint": "casual student shoes"
-  },
-  {
-    "id": 6,
-    "name": "Ankara Dress",
-    "price": "15000",
-    "university": "University of Port Harcourt",
-    "image": "https://source.unsplash.com/400x300/?ankara,fashion",
-    "hint": "student fashion"
-  },
-  {
-    "id": 7,
-    "name": "Plain White T-Shirt",
-    "price": "3500",
-    "university": "Lagos State University",
-    "image": "https://source.unsplash.com/400x300/?tshirt,white",
-    "hint": "basic student wear"
-  },
-  {
-    "id": 8,
-    "name": "Denim Jacket",
-    "price": "10000",
-    "university": "Covenant University",
-    "image": "https://source.unsplash.com/400x300/?denim,jacket",
-    "hint": "fashion jacket"
-  },
-  {
-    "id": 9,
-    "name": "Jollof Rice & Chicken Pack",
-    "price": "2500",
-    "university": "University of Lagos",
-    "image": "https://source.unsplash.com/400x300/?jollof,rice",
-    "hint": "food delivery"
-  },
-  {
-    "id": 10,
-    "name": "Shawarma (Large)",
-    "price": "2000",
-    "university": "Obafemi Awolowo University",
-    "image": "https://source.unsplash.com/400x300/?shawarma,food",
-    "hint": "fast food"
-  },
-  {
-    "id": 11,
-    "name": "Meat Pie Pack (5 pcs)",
-    "price": "1500",
-    "university": "University of Ibadan",
-    "image": "https://source.unsplash.com/400x300/?meatpie,food",
-    "hint": "snack"
-  },
-  {
-    "id": 12,
-    "name": "Fruit Smoothie",
-    "price": "1200",
-    "university": "Ahmadu Bello University",
-    "image": "https://source.unsplash.com/400x300/?smoothie,fruit",
-    "hint": "healthy drink"
-  },
-  {
-    "id": 13,
-    "name": "Suya (Beef Skewers)",
-    "price": "1800",
-    "university": "University of Benin",
-    "image": "https://source.unsplash.com/400x300/?suya,grill",
-    "hint": "popular student food"
-  },
-  {
-    "id": 14,
-    "name": "Pounded Yam with Egusi Soup",
-    "price": "3000",
-    "university": "University of Port Harcourt",
-    "image": "https://source.unsplash.com/400x300/?egusi,food",
-    "hint": "traditional meal"
-  },
-  {
-    "id": 15,
-    "name": "Burger & Fries",
-    "price": "2200",
-    "university": "Covenant University",
-    "image": "https://source.unsplash.com/400x300/?burger,fries",
-    "hint": "fast food combo"
-  }
-];
+async function getFeaturedProducts(): Promise<Product[]> {
+    const productsCollection = collection(db, 'products');
+    const q = query(
+        productsCollection, 
+        where('status', '==', 'available'), 
+        orderBy('createdAt', 'desc'),
+        limit(6)
+    );
+    const productsSnapshot = await getDocs(q);
+    
+    if (productsSnapshot.empty) {
+      return [];
+    }
+    return productsSnapshot.docs.map(doc => doc.data() as Product);
+}
 
 
-export default function Home() {
+export default async function Home() {
+  const products = await getFeaturedProducts();
+
   return (
     <div className="container mx-auto px-4 py-12">
       <section className="text-center mb-20">
@@ -167,7 +65,7 @@ export default function Home() {
                 </Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-                <Link href="/dashboard">
+                <Link href="/vendor/add-product">
                     Sell an Item
                 </Link>
             </Button>
@@ -213,17 +111,16 @@ export default function Home() {
               <CardHeader className="p-0">
                 <div className="relative aspect-video overflow-hidden">
                   <Image
-                    src={product.image}
-                    alt={product.name}
+                    src={product.imageUrl}
+                    alt={product.title}
                     width={400}
                     height={300}
-                    data-ai-hint={product.hint}
                     className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
                   />
                 </div>
               </CardHeader>
               <CardContent className="p-4 flex flex-col flex-grow">
-                <CardTitle className="text-lg mb-1 leading-tight">{product.name}</CardTitle>
+                <CardTitle className="text-lg mb-1 leading-tight">{product.title}</CardTitle>
                 <CardDescription className="text-sm text-muted-foreground mb-4">
                   {product.university}
                 </CardDescription>

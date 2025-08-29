@@ -7,10 +7,10 @@ import type { Product, Review } from '@/lib/types';
 import React, { useEffect, useState, useTransition } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Loader2, PlusCircle, UserCircle, Star, Send, MessageSquare } from 'lucide-react';
+import { Loader2, PlusCircle, UserCircle, Star, Send, MessageSquare, Sparkles } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCart } from '@/hooks/use-cart';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/auth/provider';
@@ -20,6 +20,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { getOrCreateChat } from '@/app/chat/actions';
 import Link from 'next/link';
+import { generateRelatedProducts } from '@/ai/flows/generate-related-products';
+import { Badge } from '@/components/ui/badge';
 
 
 type ProductPageProps = {
@@ -136,7 +138,10 @@ export default function ProductPage({ params }: ProductPageProps) {
           </div>
         </div>
       </div>
-      <ReviewsSection productId={product.id} reviews={reviews} />
+      <div className="grid md:grid-cols-2 gap-12 mt-12">
+        <ReviewsSection productId={product.id} reviews={reviews} />
+        <RelatedProductsSection product={product} />
+      </div>
     </div>
   );
 }
@@ -160,7 +165,7 @@ function ReviewsSection({ productId, reviews }: { productId: string, reviews: Re
     const { user, userDetails } = useAuth();
 
     return (
-        <Card className="mt-12">
+        <Card>
             <CardHeader>
                 <CardTitle>Ratings & Reviews</CardTitle>
             </CardHeader>
@@ -268,6 +273,59 @@ function ReviewForm({ productId }: { productId: string }) {
     );
 }
 
+function RelatedProductsSection({ product }: { product: Product }) {
+    const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        setLoading(true);
+        generateRelatedProducts({
+            productTitle: product.title,
+            productCategory: product.category,
+        }).then(result => {
+            setSuggestions(result.suggestions);
+        }).catch(err => {
+            console.error("Failed to generate related products", err);
+        }).finally(() => {
+            setLoading(false);
+        })
+    }, [product]);
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className='flex items-center gap-2'>
+                    <Sparkles className="text-primary" />
+                    You Might Also Like
+                </CardTitle>
+                <CardDescription>
+                    AI-powered suggestions based on this product.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                {loading ? (
+                    <div className="space-y-2">
+                        <Skeleton className="h-8 w-3/4" />
+                        <Skeleton className="h-8 w-2/3" />
+                        <Skeleton className="h-8 w-1/2" />
+                    </div>
+                ) : (
+                    <div className='flex flex-wrap gap-2'>
+                        {suggestions.map((suggestion, index) => (
+                           <Button key={index} variant="outline" asChild>
+                             <Link href={`/products?q=${encodeURIComponent(suggestion)}`}>
+                               {suggestion}
+                             </Link>
+                           </Button>
+                        ))}
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    );
+}
+
+
 function ProductSkeleton() {
   return (
     <div className="container mx-auto px-4 py-12">
@@ -285,6 +343,32 @@ function ProductSkeleton() {
           </div>
         </div>
       </div>
+       <div className="grid md:grid-cols-2 gap-12 mt-12">
+            <Card>
+                <CardHeader>
+                    <Skeleton className="h-8 w-40" />
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <Skeleton className="h-24 w-full" />
+                    <Skeleton className="h-px w-full" />
+                    <div className="space-y-4">
+                        <Skeleton className="h-12 w-full" />
+                        <Skeleton className="h-12 w-full" />
+                    </div>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <Skeleton className="h-8 w-48" />
+                    <Skeleton className="h-4 w-64 mt-2" />
+                </CardHeader>
+                <CardContent className="space-y-2">
+                    <Skeleton className="h-8 w-3/4" />
+                    <Skeleton className="h-8 w-2/3" />
+                    <Skeleton className="h-8 w-1/2" />
+                </CardContent>
+            </Card>
+        </div>
     </div>
   )
 }

@@ -12,7 +12,7 @@ export type School = {
       university: string;
       title: string;
       category: string;
-      description: string;
+      description:string;
       price: number;
       imageUrl: string;
       createdAt: string;

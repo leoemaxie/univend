@@ -14,10 +14,10 @@ export default function Footer() {
               About
             </Link>
             <Link href="#" className="hover:text-primary transition-colors">
-              Terms
-            </Link>
-            <Link href="#" className="hover:text-primary transition-colors">
               Contact
+            </Link>
+            <Link href="/superadmin" className="hover:text-primary transition-colors">
+              For Admins
             </Link>
             <Link href="/vendor/add-product" className="hover:text-primary transition-colors">
               For Vendors

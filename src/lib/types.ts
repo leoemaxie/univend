@@ -63,6 +63,7 @@ export type School = {
     createdAt: string;
     photoURL?: string;
     address?: string; // Personal delivery address
+    fcmToken?: string;
     // Vendor-specific fields
     companyName?: string;
     companyDescription?: string;

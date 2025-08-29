@@ -1,12 +1,12 @@
 'use server';
 
-import { auth } from '@/lib/firebase-admin';
+import { messaging as adminMessaging, db as adminDb } from '@/lib/firebase-admin';
 import type { CartItem } from '@/hooks/use-cart';
-import type { Order, OrderItem } from '@/lib/types';
+import type { Order, OrderItem, UserDetails } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/firebase';
-import { writeBatch, doc, collection, updateDoc, getDoc } from 'firebase/firestore';
+import { writeBatch, doc, getDoc } from 'firebase/firestore';
 
 
 type ActionResponse = {
@@ -14,6 +14,39 @@ type ActionResponse = {
   error?: string;
   orderId?: string;
 };
+
+async function sendOrderNotification(vendorId: string, orderId: string, buyerName: string) {
+    try {
+        const vendorRef = adminDb.collection('users').doc(vendorId);
+        const vendorDoc = await vendorRef.get();
+
+        if(!vendorDoc.exists) {
+            console.error("Vendor not found for notification:", vendorId);
+            return;
+        }
+
+        const vendorData = vendorDoc.data() as UserDetails;
+        const fcmToken = vendorData.fcmToken;
+
+        if (fcmToken) {
+            const message = {
+                notification: {
+                    title: 'New Order Received!',
+                    body: `${buyerName} has placed an order. Order ID: ${orderId.substring(0,8)}...`
+                },
+                token: fcmToken,
+            };
+
+            await adminMessaging.send(message);
+            console.log("Successfully sent notification to vendor:", vendorId);
+
+        } else {
+            console.log("Vendor does not have an FCM token, skipping notification.");
+        }
+    } catch(error) {
+        console.error("Error sending order notification:", error);
+    }
+}
 
 export async function placeOrder(cart: CartItem[], user: { uid: string, displayName?: string | null, university?: string, address?: string }): Promise<ActionResponse> {
   if (!user) {
@@ -68,6 +101,9 @@ export async function placeOrder(cart: CartItem[], user: { uid: string, displayN
     });
 
     await batch.commit();
+
+    // After successfully placing the order, send a notification
+    await sendOrderNotification(vendorId, orderId, user.displayName ?? 'A customer');
 
     revalidatePath('/dashboard');
     revalidatePath('/products');

@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   experimental: {
-    serverComponentsExternalPackages: ['google-auth-library'],
+    serverComponentsExternalPackages: ['google-auth-library', 'firebase-admin'],
   },
   images: {
     remotePatterns: [

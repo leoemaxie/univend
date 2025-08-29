@@ -144,3 +144,19 @@ export async function updateUserRole(userId: string, role: string): Promise<Acti
         return { success: false, error: `Failed to update role. ${errorMessage}` };
     }
 }
+
+export async function saveFcmToken(userId: string, token: string): Promise<ActionResponse> {
+    if (!userId || !token) {
+      return { success: false, error: 'Invalid user ID or token.' };
+    }
+  
+    try {
+      const userRef = doc(db, 'users', userId);
+      await updateDoc(userRef, { fcmToken: token });
+      return { success: true };
+    } catch (error) {
+      console.error('Error saving FCM token:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+      return { success: false, error: `Failed to save FCM token. ${errorMessage}` };
+    }
+}

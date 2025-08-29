@@ -6,6 +6,7 @@ import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/auth/provider';
+import { FcmTokenManager } from '@/components/fcm-token-manager';
 
 export const metadata: Metadata = {
   title: 'Univend - Your Campus Marketplace',
@@ -115,6 +116,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
+            <FcmTokenManager />
             <div className="relative flex min-h-screen flex-col">
               <Header />
               <main className="flex-1">{children}</main>

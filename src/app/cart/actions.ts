@@ -132,7 +132,7 @@ export async function placeOrder(cart: CartItem[], user: { uid: string; displayN
   const subtotal = orderItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const deliveryFee = deliveryMethod === 'delivery' ? DELIVERY_FEE : 0;
   const serviceCharge = subtotal * SERVICE_CHARGE_RATE;
-  const total = subtotal + deliveryFee; // Service charge is not added to total paid by buyer, but deducted from vendor.
+  const total = subtotal + deliveryFee; 
 
   const order: Order = {
     id: orderId,
@@ -155,8 +155,6 @@ export async function placeOrder(cart: CartItem[], user: { uid: string; displayN
   try {
     const orderRef = doc(db, 'orders', orderId);
     
-    // We will not deduct payment here anymore, but when vendor accepts.
-    // For now, just create the order.
     await setDoc(orderRef, order);
 
 

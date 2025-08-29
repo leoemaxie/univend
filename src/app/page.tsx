@@ -266,7 +266,7 @@ export default async function Home() {
                 </CardDescription>
                 <div className="flex-grow"></div>
                 <div className="flex justify-between items-center mt-auto">
-                  <p className="text-2xl font-bold text-primary">
+                  <p className="text-2xl font-bold">
                   ₦{new Intl.NumberFormat('en-NG').format(Number(product.price))}
                   </p>
                   <Button asChild size="sm" variant="outline">

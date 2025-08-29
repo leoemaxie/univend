@@ -24,6 +24,7 @@ export const db = getFirestore(app);
 
 
 export {
+    app,
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
     updateProfile,

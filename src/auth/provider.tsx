@@ -1,7 +1,6 @@
-
 'use client';
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { onAuthStateChanged, User, signOut as firebaseSignOut } from 'firebase/auth';
+import { onAuthStateChanged, User, signOut as firebaseSignOut, updateProfile } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
@@ -54,11 +53,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
   
   const refreshUserDetails = useCallback(async () => {
-    if(user) {
-        // No need to set loading to true here to avoid a full screen loader flash
-        await fetchUserDetails(user);
+    if(auth.currentUser) {
+        await auth.currentUser.reload();
+        const refreshedUser = auth.currentUser;
+        setUser(refreshedUser);
+        await fetchUserDetails(refreshedUser);
     }
-  }, [user, fetchUserDetails]);
+  }, [fetchUserDetails]);
 
   if (loading) {
       return (

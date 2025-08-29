@@ -34,6 +34,7 @@ const UpdateProfileSchema = z.object({
 type ActionResponse = {
   success: boolean;
   error?: string;
+  photoURL?: string;
 };
 
 export async function updateProfile(formData: FormData): Promise<ActionResponse> {
@@ -56,7 +57,7 @@ export async function updateProfile(formData: FormData): Promise<ActionResponse>
     }
     const existingData = userSnap.data();
 
-    let photoURL: string | undefined = existingData.photoURL;
+    let newPhotoURL: string | undefined = existingData.photoURL;
 
     // Handle photo upload
     if (photo && photo.size > 0) {
@@ -79,7 +80,7 @@ export async function updateProfile(formData: FormData): Promise<ActionResponse>
           throw new Error("Cloudinary upload failed.");
       }
       
-      photoURL = uploadResult.secure_url;
+      newPhotoURL = uploadResult.secure_url;
     }
     
     // Prepare updates
@@ -92,7 +93,7 @@ export async function updateProfile(formData: FormData): Promise<ActionResponse>
         lastName: transformedLastName,
         fullName,
         address: address || '',
-        ...(photoURL && { photoURL }),
+        ...(newPhotoURL && { photoURL: newPhotoURL }),
         companyName: vendorData.companyName || '',
         companyDescription: vendorData.companyDescription || '',
         companyCategory: vendorData.companyCategory || '',
@@ -104,7 +105,7 @@ export async function updateProfile(formData: FormData): Promise<ActionResponse>
 
     revalidatePath('/profile');
     revalidatePath('/dashboard');
-    return { success: true };
+    return { success: true, photoURL: newPhotoURL };
 
   } catch (error) {
     console.error("Error updating profile:", error);

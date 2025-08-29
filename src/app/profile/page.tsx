@@ -28,13 +28,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, User, Save, Building } from 'lucide-react';
-import { updateProfile, updateUserRole } from './actions';
+import { updateProfile as updateServerProfile, updateUserRole } from './actions';
 import Image from 'next/image';
 import { useAuth } from '@/auth/provider';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import type { UserDetails } from '@/lib/types';
+import { updateProfile } from 'firebase/auth';
 
 
 const formSchema = z.object({
@@ -117,12 +118,21 @@ export default function ProfilePage() {
         }
       });
   
-      const result = await updateProfile(formData);
+      const result = await updateServerProfile(formData);
   
       if (result.success) {
-        toast({ title: "Profile Updated!", description: "Your changes have been saved." });
+        // Now update the client-side auth object
+        const toSentenceCase = (str: string) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+        const displayName = `${toSentenceCase(values.firstName)} ${toSentenceCase(values.lastName)}`;
+
+        await updateProfile(user, {
+            displayName,
+            ...(result.photoURL && { photoURL: result.photoURL }),
+        });
+
         await refreshUserDetails();
         router.refresh();
+        toast({ title: "Profile Updated!", description: "Your changes have been saved." });
       } else {
         toast({ variant: 'destructive', title: "Update Failed", description: result.error });
       }
@@ -167,7 +177,7 @@ export default function ProfilePage() {
                     <CardContent className="space-y-8">
                     <div className='flex items-center gap-4'>
                         <Avatar className="h-20 w-20">
-                        <AvatarImage src={imagePreview || userDetails?.photoURL || `https://avatar.vercel.sh/${user.email}.png`} alt={user.displayName || 'User'}/>
+                        <AvatarImage src={imagePreview || user?.photoURL || `https://avatar.vercel.sh/${user.email}.png`} alt={user.displayName || 'User'}/>
                         <AvatarFallback>{userDetails.firstName.charAt(0)}{userDetails.lastName.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <FormField

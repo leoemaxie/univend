@@ -6,12 +6,17 @@ import {
   type GenerateProductDescriptionInput,
 } from '@/ai/flows/generate-product-description';
 import { db } from '@/lib/firebase';
-import { supabase } from '@/lib/supabase';
+import { v2 as cloudinary } from 'cloudinary';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 import { revalidatePath } from 'next/cache';
 import { setDoc, doc } from 'firebase/firestore';
 
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const ActionInputSchema = z.object({
   productTitle: z.string(),
@@ -77,26 +82,28 @@ export async function addProduct(formData: FormData): Promise<AddProductResponse
     
     try {
         const productId = uuidv4();
-        const imagePath = `products/${productId}/${image.name}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from('products')
-          .upload(imagePath, image);
+        // Convert image to buffer
+        const bytes = await image.arrayBuffer();
+        const buffer = Buffer.from(bytes);
 
-        if (uploadError) {
-          throw new Error(`Supabase upload error: ${uploadError.message}`);
+        // Upload image to Cloudinary
+        const uploadResult = await new Promise<any>((resolve, reject) => {
+            cloudinary.uploader.upload_stream({
+                folder: 'univend/products',
+                public_id: productId,
+                resource_type: 'image'
+            }, (error, result) => {
+                if (error) reject(error);
+                resolve(result);
+            }).end(buffer);
+        });
+
+        if (!uploadResult || !uploadResult.secure_url) {
+            throw new Error("Cloudinary upload failed.");
         }
         
-        const { data: publicUrlData } = supabase.storage
-            .from('products')
-            .getPublicUrl(imagePath);
-
-        if (!publicUrlData) {
-            throw new Error("Could not get public URL for the uploaded image.");
-        }
-        
-        const imageUrl = publicUrlData.publicUrl;
-
+        const imageUrl = uploadResult.secure_url;
 
         await setDoc(doc(db, "products", productId), {
             id: productId,

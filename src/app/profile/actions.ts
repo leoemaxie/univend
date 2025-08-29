@@ -5,8 +5,14 @@ import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { db, auth, updateProfile as updateFirebaseProfile } from '@/lib/firebase';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
-import { supabase } from '@/lib/supabase';
+import { v2 as cloudinary } from 'cloudinary';
 import { v4 as uuidv4 } from 'uuid';
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const toSentenceCase = (str: string) => {
     if (!str) return '';
@@ -48,25 +54,26 @@ export async function updateProfile(formData: FormData): Promise<ActionResponse>
 
     // Handle photo upload
     if (photo && photo.size > 0) {
-      const imagePath = `avatars/${userId}/${uuidv4()}-${photo.name}`;
+        const bytes = await photo.arrayBuffer();
+        const buffer = Buffer.from(bytes);
 
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(imagePath, photo, { upsert: true });
+        const uploadResult = await new Promise<any>((resolve, reject) => {
+            cloudinary.uploader.upload_stream({
+                folder: 'univend/avatars',
+                public_id: userId,
+                resource_type: 'image',
+                overwrite: true,
+            }, (error, result) => {
+                if (error) reject(error);
+                resolve(result);
+            }).end(buffer);
+        });
 
-      if (uploadError) {
-        throw new Error(`Supabase upload error: ${uploadError.message}`);
+      if (!uploadResult || !uploadResult.secure_url) {
+          throw new Error("Cloudinary upload failed.");
       }
       
-      const { data: publicUrlData } = supabase.storage
-          .from('avatars')
-          .getPublicUrl(imagePath);
-
-      if (!publicUrlData) {
-          throw new Error("Could not get public URL for the uploaded image.");
-      }
-      
-      photoURL = publicUrlData.publicUrl;
+      photoURL = uploadResult.secure_url;
     }
     
     // Prepare updates

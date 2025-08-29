@@ -1,3 +1,4 @@
+
 'use server';
 
 import {
@@ -109,6 +110,8 @@ export async function addProduct(formData: FormData): Promise<AddProductResponse
             imageUrl,
             createdAt: new Date().toISOString(),
             status: 'available',
+            reviewCount: 0,
+            averageRating: 0,
         });
 
         revalidatePath('/dashboard');

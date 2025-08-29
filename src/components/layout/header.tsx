@@ -45,6 +45,32 @@ import { useAuth } from '@/auth/provider';
 import { useCart } from '@/hooks/use-cart';
 import { useRouter } from 'next/navigation';
 
+function SearchForm() {
+    const router = useRouter();
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        const searchQuery = formData.get('search') as string;
+        router.push(`/products?q=${encodeURIComponent(searchQuery)}`);
+    }
+
+    return (
+        <form onSubmit={handleSubmit}>
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              name="search"
+              placeholder="Search products..."
+              className="w-full bg-muted pl-8 md:w-[200px] lg:w-[320px]"
+            />
+          </div>
+        </form>
+    );
+}
+
+
 export default function Header() {
   const [schools, setSchools] = React.useState<SchoolType[]>([]);
   const [loadingSchools, setLoadingSchools] = React.useState(true);
@@ -118,16 +144,7 @@ export default function Header() {
 
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <div className="w-full flex-1 md:w-auto md:flex-none">
-            <form>
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search products..."
-                  className="w-full bg-muted pl-8 md:w-[200px] lg:w-[320px]"
-                />
-              </div>
-            </form>
+            <SearchForm />
           </div>
           <div className="hidden md:flex items-center gap-4">
             {user && userDetails ? (

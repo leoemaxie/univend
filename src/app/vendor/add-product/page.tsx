@@ -4,7 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import React, { useState, useTransition } from 'react';
-
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -209,10 +208,11 @@ export default function AddProductPage() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Books">Books</SelectItem>
+                        <SelectItem value="Study & Essentials">Study & Essentials</SelectItem>
                         <SelectItem value="Hostel Needs">Hostel Needs</SelectItem>
                         <SelectItem value="Electronics">Electronics</SelectItem>
-                        <SelectItem value="Fashion">Fashion</SelectItem>
+                        <SelectItem value="Food & Groceries">Food & Groceries</SelectItem>
+                        <SelectItem value="Fashion & LifeStyle">Fashion & LifeStyle</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

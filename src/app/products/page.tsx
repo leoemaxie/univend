@@ -1,6 +1,7 @@
+
 'use client';
 
-import type { Product } from '@/lib/types';
+import type { Product, School } from '@/lib/types';
 import {
   Card,
   CardContent,
@@ -14,9 +15,18 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCart } from '@/hooks/use-cart';
+import { useSearchParams } from 'next/navigation';
+import { getSchools } from '@/lib/schools';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+  } from '@/components/ui/select';
 
 async function getProducts(): Promise<Product[]> {
   const productsCollection = collection(db, 'products');
@@ -29,20 +39,75 @@ async function getProducts(): Promise<Product[]> {
   return productsSnapshot.docs.map(doc => doc.data() as Product);
 }
 
+const categories = [
+    'Study & Essentials',
+    'Hostel Needs',
+    'Electronics',
+    'Food & Groceries',
+    'Fashion & LifeStyle',
+];
+
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [schools, setSchools] = useState<School[]>([]);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
+  const searchParams = useSearchParams();
+
+  // Filter and sort states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [universityFilter, setUniversityFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('createdAt-desc');
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchInitialData = async () => {
         setLoading(true);
-        const productList = await getProducts();
+        const [productList, schoolList] = await Promise.all([getProducts(), getSchools()]);
         setProducts(productList);
+        setSchools(schoolList);
+        setSearchTerm(searchParams.get('q') || '');
         setLoading(false);
     }
-    fetchProducts();
-  }, [])
+    fetchInitialData();
+  }, [searchParams])
+
+  const filteredAndSortedProducts = useMemo(() => {
+    let filtered = products;
+
+    if (searchTerm) {
+        filtered = filtered.filter(p => p.title.toLowerCase().includes(searchTerm.toLowerCase()));
+    }
+    if (universityFilter !== 'all') {
+        filtered = filtered.filter(p => p.university === universityFilter);
+    }
+    if (categoryFilter !== 'all') {
+        filtered = filtered.filter(p => p.category === categoryFilter);
+    }
+
+    const [sortKey, sortDirection] = sortBy.split('-');
+
+    filtered.sort((a, b) => {
+        let valA, valB;
+        if (sortKey === 'price') {
+            valA = a.price;
+            valB = b.price;
+        } else { // createdAt
+            valA = new Date(a.createdAt).getTime();
+            valB = new Date(b.createdAt).getTime();
+        }
+
+        if (sortDirection === 'asc') {
+            return valA - valB;
+        } else {
+            return valB - valA;
+        }
+    });
+
+    return filtered;
+
+  }, [products, searchTerm, universityFilter, categoryFilter, sortBy]);
+
 
   const handleAddToCart = (e: React.MouseEvent, product: Product) => {
     e.preventDefault();
@@ -60,6 +125,42 @@ export default function ProductsPage() {
           Browse through all the amazing deals available from students across campus.
         </p>
       </section>
+
+      <Card className="mb-8 p-4 bg-muted/50">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+            <Input 
+                placeholder='Search products...'
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className='md:col-span-2'
+            />
+            <Select value={universityFilter} onValueChange={setUniversityFilter}>
+                <SelectTrigger><SelectValue placeholder="Filter by University" /></SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Universities</SelectItem>
+                    {schools.map(s => <SelectItem key={s.domain} value={s.domain}>{s.name}</SelectItem>)}
+                </SelectContent>
+            </Select>
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger><SelectValue placeholder="Filter by Category" /></SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                </SelectContent>
+            </Select>
+            <div className='md:col-start-4'>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger><SelectValue placeholder="Sort by" /></SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="createdAt-desc">Newest</SelectItem>
+                        <SelectItem value="price-asc">Price: Low to High</SelectItem>
+                        <SelectItem value="price-desc">Price: High to Low</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+        </div>
+      </Card>
+
 
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
@@ -80,13 +181,13 @@ export default function ProductsPage() {
                 </Card>
             ))}
         </div>
-      ) : products.length === 0 ? (
+      ) : filteredAndSortedProducts.length === 0 ? (
         <div className="text-center py-20">
-            <p className="text-xl text-muted-foreground">No products available at the moment. Check back soon!</p>
+            <p className="text-xl text-muted-foreground">No products match your criteria. Try adjusting your filters.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-          {products.map((product) => (
+          {filteredAndSortedProducts.map((product) => (
             <Card
               key={product.id}
               className="overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col"

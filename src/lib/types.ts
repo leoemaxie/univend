@@ -1,3 +1,4 @@
+
 export type School = {
     name: string;
     type: string;
@@ -16,6 +17,8 @@ export type School = {
       imageUrl: string;
       createdAt: string;
       status: 'available' | 'sold';
+      reviewCount: number;
+      averageRating: number;
   };
   
   export type OrderItem = {
@@ -67,3 +70,14 @@ export type Wallet = {
     balance: number;
     updatedAt: string;
 }
+
+export type Review = {
+    id: string;
+    productId: string;
+    userId: string;
+    userName: string;
+    userPhotoURL: string;
+    rating: number;
+    comment: string;
+    createdAt: string;
+};

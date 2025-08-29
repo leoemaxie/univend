@@ -4,7 +4,7 @@
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { db, auth, updateProfile as updateFirebaseProfile } from '@/lib/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { supabase } from '@/lib/supabase';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -96,4 +96,38 @@ export async function updateProfile(formData: FormData): Promise<ActionResponse>
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
     return { success: false, error: `Failed to update profile. ${errorMessage}` };
   }
+}
+
+const UpdateRoleSchema = z.object({
+  userId: z.string(),
+  role: z.enum(['buyer', 'vendor', 'rider', 'superadminx']),
+});
+
+export async function updateUserRole(userId: string, role: string): Promise<ActionResponse> {
+    const validationResult = UpdateRoleSchema.safeParse({ userId, role });
+  
+    if (!validationResult.success) {
+      return { success: false, error: "Invalid role data." };
+    }
+
+    const { userId: validatedUserId, role: validatedRole } = validationResult.data;
+
+    try {
+        const userRef = doc(db, "users", validatedUserId);
+        const userSnap = await getDoc(userRef);
+        if(!userSnap.exists()){
+            return { success: false, error: "User not found." };
+        }
+
+        await updateDoc(userRef, { role: validatedRole });
+
+        revalidatePath('/profile');
+        revalidatePath('/dashboard');
+        
+        return { success: true };
+    } catch(error) {
+        console.error("Error updating role:", error);
+        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+        return { success: false, error: `Failed to update role. ${errorMessage}` };
+    }
 }

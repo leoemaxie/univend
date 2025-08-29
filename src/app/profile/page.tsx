@@ -16,15 +16,25 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, User, Save } from 'lucide-react';
-import { updateProfile } from './actions';
+import { updateProfile, updateUserRole } from './actions';
 import Image from 'next/image';
 import { useAuth } from '@/auth/provider';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Separator } from '@/components/ui/separator';
+import type { UserDetails } from '@/lib/types';
+
 
 const formSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters."),
@@ -35,9 +45,12 @@ const formSchema = z.object({
 export default function ProfilePage() {
   const { toast } = useToast();
   const [isSubmitting, startSubmitting] = useTransition();
+  const [isUpdatingRole, startUpdatingRole] = useTransition();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { user, userDetails, loading, refreshUserDetails } = useAuth();
   const router = useRouter();
+  const [selectedRole, setSelectedRole] = useState<UserDetails['role'] | ''>('');
+
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -46,6 +59,12 @@ export default function ProfilePage() {
         lastName: userDetails?.lastName || '',
     }
   });
+  
+  React.useEffect(() => {
+    if(userDetails){
+        setSelectedRole(userDetails.role);
+    }
+  }, [userDetails]);
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -86,6 +105,23 @@ export default function ProfilePage() {
     });
   }
 
+  const handleRoleSave = () => {
+    if(!user || !selectedRole) {
+        toast({ variant: 'destructive', title: "Error", description: "Could not update role." });
+        return;
+    }
+    startUpdatingRole(async () => {
+        const result = await updateUserRole(user.uid, selectedRole);
+        if (result.success) {
+            toast({ title: "Role Updated!", description: "Your role has been successfully updated." });
+            await refreshUserDetails();
+            router.refresh();
+        } else {
+            toast({ variant: 'destructive', title: "Update Failed", description: result.error });
+        }
+    })
+  }
+
   if (loading) {
     return <div className="container text-center py-12"><Loader2 className="h-8 w-8 animate-spin mx-auto" /></div>
   }
@@ -100,7 +136,7 @@ export default function ProfilePage() {
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle className="font-headline text-3xl">Your Profile</CardTitle>
-          <CardDescription>Manage your personal information.</CardDescription>
+          <CardDescription>Manage your personal information and role.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -166,10 +202,38 @@ export default function ProfilePage() {
                 ) : (
                     <Save className="mr-2 h-4 w-4" />
                 )}
-                Save Changes
+                Save Personal Info
               </Button>
             </form>
           </Form>
+
+          <Separator className="my-8" />
+          
+          <div>
+            <h3 className="text-lg font-medium">Role Management</h3>
+            <p className="text-sm text-muted-foreground mb-4">Select your primary role in the application.</p>
+            <div className="flex items-center gap-4">
+                <div className='flex-grow'>
+                    <Select value={selectedRole} onValueChange={(val) => setSelectedRole(val as UserDetails['role'])}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select your role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="buyer">Buyer</SelectItem>
+                            <SelectItem value="vendor">Vendor</SelectItem>
+                            <SelectItem value="rider">Rider</SelectItem>
+                            {userDetails.role === 'superadminx' && (
+                                <SelectItem value="superadminx">Super Admin</SelectItem>
+                            )}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <Button onClick={handleRoleSave} disabled={isUpdatingRole || selectedRole === userDetails.role}>
+                    {isUpdatingRole ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                    Save Role
+                </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

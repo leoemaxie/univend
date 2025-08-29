@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useAuth } from "@/auth/provider";
@@ -29,6 +30,9 @@ export function ChatList() {
                     return timeB - timeA;
                 });
                 setChats(sortedChats);
+            }).catch(error => {
+                console.error("Failed to fetch chats:", error);
+            }).finally(() => {
                 setLoading(false);
             })
         }

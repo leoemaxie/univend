@@ -42,10 +42,15 @@ export default function VendorDashboard({ userId }: { userId: string }) {
   useEffect(() => {
     async function fetchData() {
         setLoading(true);
-        const { products, orders } = await getVendorData(userId);
-        setProducts(products);
-        setOrders(orders);
-        setLoading(false);
+        try {
+            const { products, orders } = await getVendorData(userId);
+            setProducts(products);
+            setOrders(orders);
+        } catch (error) {
+            console.error("Failed to fetch vendor data:", error);
+        } finally {
+            setLoading(false);
+        }
     }
     fetchData();
   }, [userId]);

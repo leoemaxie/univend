@@ -53,10 +53,15 @@ export default function RiderDashboard({ userId, university }: { userId: string,
     useEffect(() => {
         async function fetchData() {
             setLoading(true);
-            const { availableDeliveries, myDeliveries } = await getRiderData(userId, university);
-            setAvailableDeliveries(availableDeliveries);
-            setMyDeliveries(myDeliveries);
-            setLoading(false);
+            try {
+                const { availableDeliveries, myDeliveries } = await getRiderData(userId, university);
+                setAvailableDeliveries(availableDeliveries);
+                setMyDeliveries(myDeliveries);
+            } catch(error) {
+                console.error("Failed to fetch rider data:", error);
+            } finally {
+                setLoading(false);
+            }
         }
         fetchData();
     }, [userId, university]);

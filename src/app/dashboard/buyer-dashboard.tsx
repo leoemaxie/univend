@@ -43,9 +43,14 @@ export default function BuyerDashboard({ userId }: { userId: string }) {
   useEffect(() => {
     async function fetchOrders() {
         setLoading(true);
-        const userOrders = await getBuyerOrders(userId);
-        setOrders(userOrders);
-        setLoading(false);
+        try {
+            const userOrders = await getBuyerOrders(userId);
+            setOrders(userOrders);
+        } catch (error) {
+            console.error("Failed to fetch buyer orders:", error);
+        } finally {
+            setLoading(false);
+        }
     }
     fetchOrders();
   }, [userId]);

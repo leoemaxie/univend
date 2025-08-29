@@ -36,10 +36,14 @@ export default function WalletPage() {
             ]).then(([walletData, transactionsData]) => {
                 setWallet(walletData);
                 setTransactions(transactionsData);
+            }).catch(error => {
+                console.error("Failed to fetch wallet data:", error);
+                toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch wallet details.' });
+            }).finally(() => {
                 setLoading(false);
             });
         }
-    }, [user, authLoading]);
+    }, [user, authLoading, toast]);
 
     const handleFundWallet = () => {
         if(!user) return;
@@ -55,7 +59,7 @@ export default function WalletPage() {
                 // Manually update state for instant UI feedback
                 setWallet(prev => prev ? {...prev, balance: result.newBalance!} : null)
                 setTransactions(prev => [{
-                    id: 'temp',
+                    id: 'temp-' + Date.now(),
                     userId: user.uid,
                     type: 'credit',
                     amount,
@@ -71,7 +75,7 @@ export default function WalletPage() {
         });
     }
 
-    if (authLoading || loading) {
+    if (authLoading || (loading && !wallet)) {
         return <WalletSkeleton />;
     }
 
@@ -129,7 +133,7 @@ export default function WalletPage() {
                             <CardDescription>A record of all your wallet activities.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                           <TransactionHistory transactions={transactions} />
+                           <TransactionHistory transactions={transactions} loading={loading} />
                         </CardContent>
                     </Card>
                 </div>
@@ -138,7 +142,17 @@ export default function WalletPage() {
     );
 }
 
-function TransactionHistory({ transactions }: { transactions: WalletTransaction[] }) {
+function TransactionHistory({ transactions, loading }: { transactions: WalletTransaction[], loading: boolean }) {
+    if (loading) {
+        return (
+            <div className="space-y-2">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+            </div>
+        );
+    }
     if (transactions.length === 0) {
       return <p className="text-center text-muted-foreground py-10">No transactions yet.</p>;
     }

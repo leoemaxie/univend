@@ -1,4 +1,3 @@
-
 import {
   Card,
   CardContent,
@@ -14,6 +13,7 @@ import {
   Shirt,
   PlusCircle,
   MoveRight,
+  Utensils,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -22,30 +22,29 @@ import { db } from '@/lib/firebase';
 import type { Product } from '@/lib/types';
 
 const categories = [
-  { name: 'Books', icon: BookOpen },
+  { name: 'Study & Essentials', icon: BookOpen },
   { name: 'Hostel Needs', icon: BedDouble },
   { name: 'Electronics', icon: Laptop },
-  { name: 'Fashion', icon: Shirt },
+  { name: 'Fashion & LifeStyle', icon: Shirt },
+  { name: 'Food & Groceries', icon: Utensils },
 ];
 
 async function getFeaturedProducts(): Promise<Product[]> {
     const productsCollection = collection(db, 'products');
-    // We will order by creation date and then filter client-side to avoid needing a composite index.
     const q = query(
-        productsCollection, 
+        productsCollection,
         orderBy('createdAt', 'desc'),
-        limit(20) // Fetch more to have enough to filter from
+        limit(10)
     );
     const productsSnapshot = await getDocs(q);
     
     if (productsSnapshot.empty) {
       return [];
     }
-
-    const allProducts = productsSnapshot.docs.map(doc => doc.data() as Product);
-    const availableProducts = allProducts.filter(p => p.status === 'available').slice(0, 6);
     
-    return availableProducts;
+    // Filter for 'available' status on the client side to avoid needing a composite index
+    const allProducts = productsSnapshot.docs.map(doc => doc.data() as Product);
+    return allProducts.filter(product => product.status === 'available').slice(0, 6);
 }
 
 
@@ -81,7 +80,7 @@ export default async function Home() {
         <h2 className="text-3xl font-bold font-headline mb-8 text-center">
           Shop by Category
         </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
           {categories.map((category) => (
             <Card
               key={category.name}

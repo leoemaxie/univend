@@ -1,3 +1,4 @@
+
 import {
   Card,
   CardContent,
@@ -29,18 +30,22 @@ const categories = [
 
 async function getFeaturedProducts(): Promise<Product[]> {
     const productsCollection = collection(db, 'products');
+    // We will order by creation date and then filter client-side to avoid needing a composite index.
     const q = query(
         productsCollection, 
-        where('status', '==', 'available'), 
         orderBy('createdAt', 'desc'),
-        limit(6)
+        limit(20) // Fetch more to have enough to filter from
     );
     const productsSnapshot = await getDocs(q);
     
     if (productsSnapshot.empty) {
       return [];
     }
-    return productsSnapshot.docs.map(doc => doc.data() as Product);
+
+    const allProducts = productsSnapshot.docs.map(doc => doc.data() as Product);
+    const availableProducts = allProducts.filter(p => p.status === 'available').slice(0, 6);
+    
+    return availableProducts;
 }
 
 

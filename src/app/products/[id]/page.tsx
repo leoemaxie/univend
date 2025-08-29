@@ -117,7 +117,7 @@ export default function ProductPage({ params }: ProductPageProps) {
             <span className="text-muted-foreground text-sm">({product.reviewCount} reviews)</span>
           </div>
           
-          <p className="text-4xl font-bold mb-6">
+          <p className="text-4xl font-bold mb-6 text-price">
             ₦{new Intl.NumberFormat('en-NG').format(product.price)}
           </p>
 

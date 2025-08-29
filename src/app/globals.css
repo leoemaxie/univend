@@ -33,6 +33,8 @@
     --ring: 8 71% 50%; /* Red-Orange Ring */
 
     --radius: 0.5rem;
+
+    --price: 220 80% 55%;
   }
 
   .dark {
@@ -63,6 +65,8 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 8 71% 50%; /* Red-Orange Ring */
+
+    --price: 220 80% 65%;
   }
 }
 

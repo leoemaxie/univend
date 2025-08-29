@@ -211,10 +211,10 @@ export default function ProductsPage() {
                   </CardDescription>
                   <div className="flex-grow"></div>
                   <div className="flex justify-between items-center mt-auto">
-                    <p className="text-2xl font-bold">
+                    <p className="text-2xl font-bold text-price">
                       ₦{new Intl.NumberFormat('en-NG').format(product.price)}
                     </p>
-                    <Button size="sm" variant="outline" onClick={(e) => handleAddToCart(e, product)}>
+                    <Button size="sm" onClick={(e) => handleAddToCart(e, product)}>
                       <PlusCircle className="mr-2 h-4 w-4" />
                       Add to Cart
                     </Button>

@@ -266,10 +266,10 @@ export default async function Home() {
                 </CardDescription>
                 <div className="flex-grow"></div>
                 <div className="flex justify-between items-center mt-auto">
-                  <p className="text-2xl font-bold">
+                  <p className="text-2xl font-bold text-price">
                   ₦{new Intl.NumberFormat('en-NG').format(Number(product.price))}
                   </p>
-                  <Button asChild size="sm" variant="outline">
+                  <Button asChild size="sm">
                     <Link href={`/products/${product.id}`}>
                       <PlusCircle className="mr-2 h-4 w-4" />
                       Add to Cart

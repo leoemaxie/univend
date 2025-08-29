@@ -85,8 +85,8 @@ export default function SignUpPage() {
         if (hasSchoolEmail) {
             const emailDomain = (email as string).split('@')[1];
             const selectedSchool = schools.find(s => s.domain === school);
-            if (emailDomain !== selectedSchool?.domain) {
-                toast({ variant: 'destructive', title: 'Invalid Email', description: `Your email domain must match the selected university's domain (${selectedSchool?.domain}).` });
+            if (!emailDomain || !selectedSchool || !emailDomain.endsWith(selectedSchool.domain)) {
+                toast({ variant: 'destructive', title: 'Invalid Email', description: `Your email must be from the selected university domain (${selectedSchool?.domain}).` });
                 setIsPending(false);
                 return;
             }
@@ -188,7 +188,7 @@ export default function SignUpPage() {
               name="email"
               id="email"
               type="email"
-              placeholder={hasSchoolEmail ? `you@${school}` : "you@example.com"}
+              placeholder={hasSchoolEmail ? `you@...${school}` : "you@example.com"}
               required
               disabled={!school}
             />

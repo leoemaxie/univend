@@ -1,37 +1,29 @@
-// This file must be in the public folder.
-
-importScripts("https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js");
-importScripts("https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js");
+// Scripts for firebase and firebase messaging
+importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID",
-  measurementId: "YOUR_MEASUREMENT_ID"
+  apiKey: self.location.search.split('apiKey=')[1].split('&')[0],
+  authDomain: self.location.search.split('authDomain=')[1].split('&')[0],
+  projectId: self.location.search.split('projectId=')[1].split('&')[0],
+  storageBucket: self.location.search.split('storageBucket=')[1].split('&')[0],
+  messagingSenderId: self.location.search.split('messagingSenderId=')[1].split('&')[0],
+  appId: self.location.search.split('appId=')[1].split('&')[0],
+  measurementId: self.location.search.split('measurementId=')[1].split('&')[0],
 };
 
-// This is a placeholder. The SDK will automatically try to find and use
-// the VAPID key provided in the NEXT_PUBLIC_FIREBASE_VAPID_KEY environment variable.
-// However, to get the service worker to register, we need to initialize the app.
-// The config values will be automatically replaced by the SDK if they are available
-// in the environment.
-firebase.initializeApp(JSON.parse(new URL(location).searchParams.get("firebaseConfig")));
+firebase.initializeApp(firebaseConfig);
 
+// Retrieve an instance of Firebase Messaging so that it can handle background messages.
 const messaging = firebase.messaging();
 
-messaging.onBackgroundMessage((payload) => {
-  console.log(
-    "[firebase-messaging-sw.js] Received background message ",
-    payload
-  );
-  
+messaging.onBackgroundMessage(function(payload) {
+  console.log('Received background message ', payload);
+
   const notificationTitle = payload.notification.title;
   const notificationOptions = {
     body: payload.notification.body,
-    icon: "/icon-192x192.png", // Or your desired icon
+    icon: '/logo.svg'
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);

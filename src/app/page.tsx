@@ -52,7 +52,7 @@ const staticProducts: Omit<Product, 'vendorId' | 'vendorName' | 'category' | 'de
     "title": "Organic Chemistry Notes",
     "price": 5000,
     "university": "University of Ibadan",
-    "imageUrl": "https://www.freepik.com/free-vector/books-paper-with-science-symbols_4977566.htm#fromView=search&page=1&position=3&uuid=8a74369b-c7a4-4910-a042-c9a58c3a8655&query=chemistrynote",
+    "imageUrl": "https://source.unsplash.com/400x300/?chemistry,notes",
     "data-ai-hint": "chemistry textbook"
   },
   {

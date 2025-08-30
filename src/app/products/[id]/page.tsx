@@ -31,6 +31,7 @@ type ProductPageProps = {
 };
 
 export default function ProductPage({ params }: ProductPageProps) {
+  const { id: productId } = params;
   const [product, setProduct] = useState<Product | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,7 +44,7 @@ export default function ProductPage({ params }: ProductPageProps) {
   useEffect(() => {
     const fetchProductAndReviews = async () => {
       setLoading(true);
-      const productRef = doc(db, 'products', params.id);
+      const productRef = doc(db, 'products', productId);
       const reviewsRef = collection(productRef, 'reviews');
       
       const productSnap = await getDoc(productRef);
@@ -61,12 +62,12 @@ export default function ProductPage({ params }: ProductPageProps) {
     };
 
     fetchProductAndReviews();
-  }, [params.id]);
+  }, [productId]);
 
 
   const handleChatWithVendor = () => {
     if (!user) {
-        router.push(`/signin?callbackUrl=/products/${params.id}`);
+        router.push(`/signin?callbackUrl=/products/${productId}`);
         return;
     }
     if (user.uid === product?.vendorId) {
@@ -75,7 +76,7 @@ export default function ProductPage({ params }: ProductPageProps) {
     }
 
     startCreatingChat(async () => {
-        const result = await getOrCreateChat(params.id, user.uid);
+        const result = await getOrCreateChat(productId, user.uid);
         if(result.success && result.data) {
             router.push(`/chat/${result.data.chatId}`);
         } else {

@@ -1,3 +1,4 @@
+
 'use client';
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { onAuthStateChanged, User, signOut as firebaseSignOut, updateProfile } from 'firebase/auth';
@@ -64,7 +65,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   if (loading) {
       return (
           <div className='flex h-screen w-full items-center justify-center'>
-              <Loader2 className='h-12 w-12 animate-spin text-primary' />
+              <Loader2 className='h-12 w-12 animate-spin text-price' />
           </div>
       )
   }

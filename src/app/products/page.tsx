@@ -31,7 +31,8 @@ import {
 
 async function getProducts(): Promise<Product[]> {
   const productsCollection = collection(db, 'products');
-  const q = query(productsCollection, where('status', '==', 'available'), orderBy('createdAt', 'desc'));
+  // Removed orderBy to prevent missing index error. Sorting will be done on the client.
+  const q = query(productsCollection, where('status', '==', 'available'));
   const productsSnapshot = await getDocs(q);
   
   if (productsSnapshot.empty) {
@@ -74,7 +75,7 @@ export default function ProductsPage() {
   }, [searchParams])
 
   const filteredAndSortedProducts = useMemo(() => {
-    let filtered = products;
+    let filtered = [...products];
 
     if (searchTerm) {
         filtered = filtered.filter(p => p.title.toLowerCase().includes(searchTerm.toLowerCase()));

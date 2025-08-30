@@ -18,7 +18,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
         <div className="container mx-auto px-4 py-12 text-center">
-            <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
+            <Loader2 className="mx-auto h-12 w-12 animate-spin text-price" />
             <p className="mt-4 text-muted-foreground">Loading your dashboard...</p>
         </div>
     )

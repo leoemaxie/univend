@@ -97,7 +97,7 @@ export default function WalletPage() {
                         </CardHeader>
                         <CardContent className="text-center">
                             <p className="text-sm text-muted-foreground">Current Balance</p>
-                            <p className="text-5xl font-bold font-headline tracking-tight text-primary">
+                            <p className="text-5xl font-bold font-headline tracking-tight text-price">
                                 ₦{wallet ? new Intl.NumberFormat('en-NG').format(wallet.balance) : '0.00'}
                             </p>
                         </CardContent>

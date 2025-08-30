@@ -17,21 +17,16 @@ import { useAuth } from '@/auth/provider';
 import { Textarea } from '@/components/ui/textarea';
 import { submitReview } from './actions';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { getOrCreateChat } from '@/app/chat/actions';
 import Link from 'next/link';
 import { generateRelatedProducts } from '@/ai/flows/generate-related-products';
 import { Badge } from '@/components/ui/badge';
 
 
-type ProductPageProps = {
-  params: {
-    id: string;
-  };
-};
-
-export default function ProductPage({ params }: ProductPageProps) {
-  const { id: productId } = params;
+export default function ProductPage() {
+  const params = useParams();
+  const productId = params.id as string;
   const [product, setProduct] = useState<Product | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,6 +37,8 @@ export default function ProductPage({ params }: ProductPageProps) {
   const { toast } = useToast();
 
   useEffect(() => {
+    if (!productId) return;
+
     const fetchProductAndReviews = async () => {
       setLoading(true);
       const productRef = doc(db, 'products', productId);
